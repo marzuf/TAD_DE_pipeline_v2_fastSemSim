@@ -1,7 +1,9 @@
 startTime <- Sys.time()
-cat(paste0("> Rscript trial_chr6_TAD58_vEntrez.R\n"))
+cat(paste0("> Rscript trial_chr6_TAD58_vEntrez_withICtable.R\n"))
 
-# Rscript trial_chr6_TAD58_vEntrez.R
+# Rscript trial_chr6_TAD58_vEntrez_withICtable.R [<metric>]
+
+args <- commandArgs(trailingOnly = TRUE)
 
 SSHFS <- F
 setDir <- ifelse(SSHFS, "/media/electron", "")
@@ -12,20 +14,17 @@ source("utils.R")
 
 pipOutDir <- file.path(setDir, "/mnt/ed4/marie/scripts/TAD_DE_pipeline_v2_TopDom", "OUTPUT_FOLDER")
 
-curr_dataset <- "TCGAcrc_msi_mss"
+curr_dataset <- "TCGAcoad_msi_mss"
 
 curr_tad <- "chr6_TAD58"
 
-outFold <- file.path("FAST_SEM_SIM_vEntrez", curr_dataset)
+outFold <- file.path("FAST_SEM_SIM_vEntrez_withICtable", curr_dataset)
 system(paste0("mkdir -p ", outFold))
 
 logFile <- file.path(outFold, "fastSemSim_logFile.txt")
 if(!SSHFS) system(paste0("rm -f ", logFile))
 
 #************************************************************************************* FAST SEM SIM SETTINGS
-fastSemSim_resultFile <- file.path(outFold, "output", paste0(curr_tad, "_result_file.txt"))
-system(paste0("mkdir -p ", dirname(fastSemSim_resultFile)))
-
 fss_root <- "biological_process"
 fss_species <- "human"
 #fss_acFile <- file.path(setDir, "/mnt/ed4/marie/software/fastsemsim-0.9.4/ebi_files/goa_human.gaf")
@@ -33,14 +32,20 @@ fss_acFile <- file.path(setDir, "/mnt/ed4/marie/software/fastsemsim-0.9.4/fastse
 stopifnot(file.exists(fss_acFile))
 fss_ontType <- "GeneOntology"
 fss_queryType <- "obj"
-fss_metric <- "SimGIC"
+fss_metric <- ifelse(length(args) == 1, args[1], "Resnik")
+fss_mixStrategy <- "max"
 fss_exec <- "fastsemsim"
 fss_queryIn <- "file"
 fss_queryMode <- "list"
 
+fastSemSim_resultFile <- file.path(outFold, "output", paste0(curr_tad, "_", fss_ontType, "_", fss_root, "_", fss_metric, "_", fss_mixStrategy, "_result_file.txt"))
+system(paste0("mkdir -p ", dirname(fastSemSim_resultFile)))
+
+
 # if fss_ICtable == NULL => run to output the ICtable only
-fss_ICtable <- NULL
-fss_ICoutFile <- file.path(outFold, "output", paste0(curr_tad, "_IC_table.txt"))
+fss_ICtable <- file.path("ALL_GENES_IC_TABLE/output", paste0("all_datasets",fss_ontType, "_", fss_root, "_", fss_metric, "_", fss_mixStrategy, "_IC_table.txt"))
+stopifnot(file.exists(fss_ICtable))
+fss_ICoutFile <- NULL
 
 txt <- paste0("... ", "fss_root" , "\t=\t", fss_root , "\n")
 printAndLog(txt, logFile)
@@ -110,9 +115,15 @@ cat(paste0("... written:\t", fastSemSim_queryFile, "\n"))
 # fastsemsim --ontology_type GeneOntology --ac_species human --ac_file /mnt/ed4/marie/software/fastsemsim-0.9.4/ebi_files/goa_human.gaf --query_ss_type obj --tss SimGIC --query_input file --query_file query_trial4.txt  -vv --output_file result_trial4.txt --query_mode list --root biological_process
 # fastsemsim --ontology_type GeneOntology --ac_species human --ac_file //mnt/ed4/marie/software/fastsemsim-0.9.4/ebi_files/goa_human.gaf --query_ss_type obj --tss SimGIC --query_input file --query_file FAST_SEM_SIM/TCGAcrc_msi_mss/input/chr6_TAD58_query_file.txt -vv --output_file FAST_SEM_SIM/TCGAcrc_msi_mss/output/chr6_TAD58_result_file.txt --query_mode list --root biological_process 
 
-fastSemSim_cmd <- paste(fss_exec, "--ontology_type", fss_ontType, "--ac_species", fss_species,
-                        "--ac_file", fss_acFile, "--query_ss_type", fss_queryType, "--tss", fss_metric,
-                        "--query_input", fss_queryIn, "--query_file", fastSemSim_queryFile, 
+fastSemSim_cmd <- paste(fss_exec, 
+                        "--ontology_type", fss_ontType, 
+                        "--ac_species", fss_species,
+                        "--ac_file", fss_acFile, 
+                        "--query_ss_type", fss_queryType, 
+                        "--tss", fss_metric,
+                        "--tmix", fss_mixStrategy,
+                        "--query_input", fss_queryIn, 
+                        "--query_file", fastSemSim_queryFile, 
 
                         ifelse(is.null(fss_ICtable),
                         # export the IC table:
@@ -120,7 +131,9 @@ fastSemSim_cmd <- paste(fss_exec, "--ontology_type", fss_ontType, "--ac_species"
                         # in case to import the IC table:  #   --inject_IC inject_IC, --inject_IC_form_file inject_IC
                         paste("--inject_IC", fss_ICtable, "--task SS", "--output_file",  fastSemSim_resultFile)
                         ),
-                        "-vv",  "--query_mode", fss_queryMode, "--root", fss_root)
+                        "-vv",  
+                        "--query_mode", fss_queryMode,
+                        "--root", fss_root)
 
 
 cat(paste0("... start fastSemSim:\t", Sys.time(), "\n"))
@@ -138,7 +151,8 @@ if(is.null(fss_ICtable)) {
   #***************************************************************************************************** REFORMAT FAST SEM SIM OUTPUT
   #*****************************************************************************************************
   
-  formated_fastSemSim_resultFile <- file.path(outFold, "output", paste0(curr_tad, "_result_file_formated.txt"))
+  formated_fastSemSim_resultFile <- file.path(outFold, "output", paste0(curr_tad, "_", fss_ontType, "_", fss_root, "_", fss_metric, "_", fss_mixStrategy, "_result_file_formated.txt"))
+  
   system(paste0("mkdir -p ", dirname(formated_fastSemSim_resultFile)))
   
   semsim_DT <- read.delim(fastSemSim_resultFile, header=T, stringsAsFactors = FALSE)
