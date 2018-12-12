@@ -169,7 +169,7 @@ stopifnot(!is.na(topDS))
 #all_ds <- all_ds[1:3]
 curr_ds="TCGAcoad_msi_mss"
 
-topDS <- topDS[2]
+#topDS <- topDS[2]
 
 if(buildTable){
   all_ds_DT <- foreach(curr_ds = topDS, .combine='rbind') %do% {

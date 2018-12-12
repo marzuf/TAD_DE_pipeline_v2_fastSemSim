@@ -1,7 +1,9 @@
 startTime <- Sys.time()
-cat(paste0("> Rscript cmp_dataset_DA_TADs_genes_pvalSelect_FastSemSim.R\n"))
+cat(paste0("> Rscript cmp_dataset_DA_TADgenes_pvalSelect_FastSemSim.R\n"))
 
-# Rscript cmp_dataset_DA_TADs_genes_pvalSelect_FastSemSim.R
+# Rscript cmp_dataset_DA_TADgenes_pvalSelect_FastSemSim.R
+# Rscript cmp_dataset_DA_TADgenes_pvalSelect_FastSemSim.R TCGAcoad_msi_mss
+# Rscript cmp_dataset_DA_TADgenes_pvalSelect_FastSemSim.R TCGAcoad_msi_mss SimGIC
 
 options(scipen=100)
 
@@ -24,6 +26,10 @@ vdHeight <- 7
 vdWidth <- 7
 
 curr_ds <- "TCGAcoad_msi_mss"
+fss_metric <- "SimGIC"
+args <- commandArgs(trailingOnly = TRUE)
+curr_ds <- args[1]
+fss_metric <- args[2]
 
 source( file.path(setDir, paste0("/mnt/ed4/marie/scripts/TAD_DE_pipeline_v2_coreg"), "set_dataset_colors.R"))
 head(score_DT)
@@ -36,18 +42,6 @@ if(SSHFS) setwd("/media/electron/mnt/ed4/marie/scripts/TAD_DE_pipeline_v2_fastSe
 source("utils.R")
 source("run_fastSemSim.R")
 
-nTopDS <- 5
-rankVar <- "FCC"
-
-args <- commandArgs(trailingOnly = T)
-if(length(args) >= 1) {
-  if(!is.na(as.numeric(args[1])))
-    nTopDS <- as.numeric(args[1])
-}
-if(length(args) == 2) {
-    rankVar <- args[2]
-}
-stopifnot(rankVar %in% c("FCC", "coexpr", "avg"))
 
 # ! IN THIS VERSION, SELECTION OF TAD GENES AND GENES BASED ON PVAL
 pvalSelect <- 0.05
@@ -61,7 +55,7 @@ gffDT_file <- file.path(setDir, "/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_POS
 gffDT <- read.delim(gffDT_file, header=T, stringsAsFactors = F)
 gffDT$entrezID <- as.character(gffDT$entrezID)
 
-outFold <- file.path("CMP_DATASET_DA_TADGENES_FASTSEMSIM_pvalSelect", curr_ds)
+outFold <- file.path("CMP_DATASET_DA_TADGENES_FASTSEMSIM_pvalSelect", fss_metric, curr_ds)
 system(paste0("mkdir -p ", outFold))
 
 logFile <- file.path(outFold, "cmp_tads_genes_go_logFile.txt")
@@ -81,7 +75,7 @@ printAndLog(txt, logFile)
 # settings for FastSemSim
 fss_acFile <- file.path(setDir, "/mnt/ed4/marie/software/fastsemsim-0.9.4/fastsemsim/mz_data/goa_human_entrezID.gaf")
 stopifnot(file.exists(fss_acFile))
-fss_metric <- "SimGIC"
+
 
 IC_table_inFile <- file.path("ALL_ENTREZ_GENES_IC_TABLE/output",
                           paste0("all_entrez_GeneOntology_biological_process_", fss_metric, "_max_IC_table.txt"))
@@ -107,6 +101,7 @@ curr_ds="TCGAcoad_msi_mss"
 topDS <- "TCGAcoad_msi_mss"
 
 topDS <- all_ds[1:3]
+topDS <- all_ds
 
 if(buildTable){
   all_ds_DA_TADs_fastSemSim_DT <- foreach(curr_ds = topDS, .combine='rbind') %do% {
@@ -138,11 +133,14 @@ if(buildTable){
     nSelectTADs <- length(selectTADs)
     
     
-    selectTADs <- selectTADs[1:2]
+#    selectTADs <- selectTADs[1:2]
     
     if(nSelectTADs > 0){
       
       selectTADs_fastSemSim_DT <- foreach(curr_tad = selectTADs, .combine='rbind') %dopar% {
+        
+        curr_tad_pval <- tad_pval[curr_tad]
+        stopifnot(is.numeric(curr_tad_pval))
         
         stopifnot(curr_tad %in% gene2tad_DT$region)
         curr_TAD_genes <- gene2tad_DT$entrezID[gene2tad_DT$region == curr_tad]  
@@ -181,16 +179,18 @@ if(buildTable){
         
         curr_TAD_genes_fssDT$dataset <- curr_ds
         curr_TAD_genes_fssDT$region <- curr_tad
+        curr_TAD_genes_fssDT$region_adjPval <- curr_tad_pval
         curr_TAD_genes_fssDT$region_type <- "selectTADs"
         
         
-      curr_TAD_genes_fssDT[,c("dataset", "region", "region_type", "gene1_entrezID","gene2_entrezID","gene1_symbol","gene2_symbol","ss")]
+      curr_TAD_genes_fssDT[,c("dataset", "region", "region_adjPval", "region_type", "gene1_entrezID","gene2_entrezID","gene1_symbol","gene2_symbol","ss")]
         
       }
     } else {
       selectTADs_fastSemSim_DT <- data.frame(
         dataset= curr_ds,
         region= NA,
+        region_adjPval = NA,
         gene1_entrezID =NA, 
         gene2_entrezID =NA,
         gene1_symbol=NA,
@@ -211,7 +211,7 @@ if(buildTable){
     stopifnot(nNsTADs + nSelectTADs == nTADs)
 
         
-    nsTADs <- nsTADs[1:2]
+#    nsTADs <- nsTADs[1:2]
     
     if(nNsTADs > 0){
       
@@ -264,6 +264,7 @@ if(buildTable){
       nsTADs_fastSemSim_DT <- data.frame(
         dataset= curr_ds,
         region= NA,
+        region_adjPval = NA,
         gene1_entrezID =NA, 
         gene2_entrezID =NA,
         gene1_symbol=NA,
