@@ -43,7 +43,7 @@ system(paste0("mkdir -p ", dirname(fastSemSim_resultFile)))
 
 
 # if fss_ICtable == NULL => run to output the ICtable only
-fss_ICtable <- file.path("ALL_GENES_IC_TABLE/output", paste0("all_datasets",fss_ontType, "_", fss_root, "_", fss_metric, "_", fss_mixStrategy, "_IC_table.txt"))
+fss_ICtable <- file.path("ALL_GENES_IC_TABLE/output", paste0("all_datasets_",fss_ontType, "_", fss_root, "_", fss_metric, "_", fss_mixStrategy, "_IC_table.txt"))
 stopifnot(file.exists(fss_ICtable))
 fss_ICoutFile <- NULL
 

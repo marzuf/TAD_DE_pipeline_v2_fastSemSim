@@ -64,7 +64,7 @@ gffDT_file <- file.path(setDir, "/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_POS
 gffDT <- read.delim(gffDT_file, header=T, stringsAsFactors = F)
 gffDT$entrezID <- as.character(gffDT$entrezID)
 
-outFold <- file.path("CMP_TADs_GENES_FASTSEMSIM_pvalSelect",nTopDS,rankVar)
+outFold <- file.path("CMP_TADs_GENES_FASTSEMSIM_pvalSelect_CHECK",nTopDS,rankVar)
 system(paste0("mkdir -p ", outFold))
 
 logFile <- file.path(outFold, "cmp_tads_genes_go_logFile.txt")
@@ -169,10 +169,10 @@ stopifnot(!is.na(topDS))
 #all_ds <- all_ds[1:3]
 curr_ds="TCGAcoad_msi_mss"
 
-#topDS <- topDS[2]
+topDS <- topDS[1:2]
 
 if(buildTable){
-  all_ds_DT <- foreach(curr_ds = topDS, .combine='rbind') %do% {
+  all_ds_semSim_DT <- foreach(curr_ds = topDS, .combine='rbind') %do% {
     # all_ds_DT <- foreach(curr_ds = topDS, .combine='rbind') %dopar% {
     txt <- paste0("*** START:\t", curr_ds, "\n")
     printAndLog(txt, logFile)
@@ -252,7 +252,7 @@ if(buildTable){
       ### RUN FAST_SEM_SIM FOR THE TADs GENES
       cat("... start run_fastSemSim\n")
       selectGenes_fssDT <- run_fastSemSim(
-        geneList = selectGenes,
+        geneList = selectGenes[1:10],
         runName = paste0(curr_ds, "_selectGenes"),
         simMetric = fss_metric,
         gafFile = fss_acFile,
@@ -273,8 +273,9 @@ if(buildTable){
       # cat("written = ", check_outFile, "\n")
       # # stop("--ok\n")
       stopifnot(is.numeric(selectGenes_fssDT$ss))
-      selectGenes_meanSS <- nrow(selectGenes_fssDT)
+      selectGenes_nTestedPairs <- nrow(selectTADs_genes_fssDT)
       selectGenes_fssDT <- na.omit(selectGenes_fssDT)
+      selectGenes_nSS <- nrow(selectTADs_genes_fssDT)
       if(nrow(selectGenes_fssDT) == 0) {
         selectGenes_meanSS <- NA
       } else{
@@ -282,6 +283,7 @@ if(buildTable){
       }
     } else {
       selectGenes_nTestedPairs <- NA
+      selectGenes_nSS <- NA
       selectGenes_meanSS <- NA
     }
         
@@ -291,7 +293,7 @@ if(buildTable){
       ### RUN FAST_SEM_SIM FOR THE TADs GENES
       cat("... start run_fastSemSim\n")
       selectTADs_genes_fssDT <- run_fastSemSim(
-        geneList = selectTADs_genes,
+        geneList = selectTADs_genes[1:10],
         runName = paste0(curr_ds, "_selectTADs_genes"),
         simMetric = fss_metric,
         gafFile = fss_acFile,
@@ -314,6 +316,7 @@ if(buildTable){
       stopifnot(is.numeric(selectTADs_genes_fssDT$ss))
       selectTADs_genes_nTestedPairs <- nrow(selectTADs_genes_fssDT)
       selectTADs_genes_fssDT <- na.omit(selectTADs_genes_fssDT)
+      selectTADs_genes_nSS <- nrow(selectTADs_genes_fssDT)
       if(nrow(selectTADs_genes_fssDT) == 0) {
         selectTADs_genes_meanSS <- NA
       } else{
@@ -326,11 +329,26 @@ if(buildTable){
         
     }else {
       selectTADs_genes_nTestedPairs <- NA
+      selectTADs_genes_nSS <- NA
       selectTADs_genes_meanSS <- NA
     }
       
-    
+    data.frame(dataset=curr_ds,
+      selectTADs_genes_nTestedPairs = selectTADs_genes_nTestedPairs,
+      selectTADs_genes_nSS = selectTADs_genes_nSS,
+      selectTADs_genes_meanSS = selectTADs_genes_meanSS,
+      selectGenes_nTestedPairs = selectGenes_nTestedPairs,
+      selectGenes_nSS = selectGenes_nSS,
+      selectGenes_meanSS = selectGenes_meanSS,
+stringsAsFactors=FALSE
+    )    
+
+
   } # end iterating over curr_ds
+
+outFile <- file.path(outFold, "all_ds_semSim_DT.Rdata")
+save(all_ds_semSim_DT, file=outFile)
+cat(paste0("... written: ", outFile, "\n"))
 } # end if buildTable
     
     
