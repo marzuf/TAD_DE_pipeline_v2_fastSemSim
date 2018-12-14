@@ -2,7 +2,7 @@
 
 
 startTime <- Sys.time()
-cat(paste0("> Rscript cmp_dataset_DA_TADgenes_pvalSelect_FastSemSim.R\n"))
+cat(paste0("> Rscript cmp_dTAD_fastSemSim_random.R\n"))
 
 on.exit(cat(paste0(startTime, "\n", Sys.time(), "\n")))
 
@@ -39,7 +39,7 @@ curr_tad <- args[2]
 fss_metric <- args[3]
 
 
-nRandom <- 5
+nRandom <- 1000
 
 source( file.path(setDir, paste0("/mnt/ed4/marie/scripts/TAD_DE_pipeline_v2_coreg"), "set_dataset_colors.R"))
 head(score_DT)
@@ -68,7 +68,7 @@ gffDT$entrezID <- as.character(gffDT$entrezID)
 outFold <- file.path("CMP_TAD_RANDOM", fss_metric, curr_ds, curr_tad)
 system(paste0("mkdir -p ", outFold))
 
-logFile <- file.path(outFold, "cmp_tad_random_logFile.txt")
+logFile <- file.path(outFold, paste0("cmp_tad_", nRandom, "random_logFile.txt"))
 system(paste0("rm -f ", logFile))
 
 dsFold <- "../TAD_DE_pipeline_v2_TopDom/OUTPUT_FOLDER"
@@ -109,7 +109,6 @@ pipelineGenes <- eval(parse(text = load(pipelinegeneFile)))
 tad_genes <- gene2tad_DT$entrezID[gene2tad_DT$region == curr_tad & 
                                     gene2tad_DT$entrezID %in% pipelineGenes]
 stopifnot(length(tad_genes) > 0)
-
 
 curr_TAD_genes_fssDT <- run_fastSemSim(
   geneList = tad_genes,
@@ -178,21 +177,49 @@ cmp_TAD_random_DT$dataset <- curr_ds
 
 cmp_TAD_random_DT <- cmp_TAD_random_DT[,c("dataset", "region", "gene1_entrezID","gene2_entrezID","gene1_symbol","gene2_symbol","ss")]
 
-outFile <-     file.path(outFold, "cmp_TAD_random_DT.Rdata")
+outFile <-     file.path(outFold, paste0("cmp_TAD_", nRandom, "random_DT.Rdata"))
 save(cmp_TAD_random_DT, file = outFile)
 cat(paste0("... written: ", outFile, "\n"))
 
+# outFile <- "CMP_TAD_RANDOM/SimGIC/TCGAcoad_msi_mss/chr6_TAD58/cmp_TAD_random_DT.Rdata"
+# cmp_TAD_random_DT <- eval(parse(text = load(outFile)))
 cmp_TAD_random_DT$regionType <- ifelse(cmp_TAD_random_DT$region==curr_tad, curr_tad, "random")
 
+outFile <- file.path(outFold, paste0(curr_tad, "_vs_", nRandom, "random_cmpSS_multiDens.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width = myWidth*1.5))
 plot_multiDens(
 list(ss_in_TADs = na.omit(cmp_TAD_random_DT$ss[grepl("_TAD", cmp_TAD_random_DT$region)]),
-ss_in_random = na.omit(cmp_TAD_random_DT$ss[grepl("random", cmp_TAD_random_DT$region)]))
+ss_in_random = na.omit(cmp_TAD_random_DT$ss[grepl("random", cmp_TAD_random_DT$region)])),
+plotTit = paste0("All SS values distribution"),
+my_xlab = paste0("SS (", fss_metric,")")
 )
+mtext(text = paste0(fss_metric, " - nRandom = ", nRandom), side=3)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
 
 
-boxplot(ss ~ regionType, data = cmp_TAD_random_DT)
+outFile <- file.path(outFold, paste0(curr_tad, "_vs_", nRandom, "random_cmpSS_boxplot.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width = myWidth))
+boxplot(ss ~ regionType, data = cmp_TAD_random_DT,
+        main = paste0("Pairwise SS"),
+        ylab = paste0("SS (", fss_metric,")"))
+mtext(text = paste0(fss_metric, " - nRandom = ", nRandom), side=3)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
+
 
 ss_mean_DT <- aggregate(ss ~ region, data = cmp_TAD_random_DT, FUN = mean, na.rm=T)
+
+outFile <- file.path(outFold, paste0(curr_tad, "_vs_", nRandom, "random_cmpMean_dens.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width = myWidth*1.5))
+plot(density(ss_mean_DT$ss[grepl("^random_", ss_mean_DT$region)]),
+     xlab=paste0("mean SS (", fss_metric, ")"),
+     main = paste0("Mean SS: distribution random and value observed (", curr_tad,")"))
+abline(v = ss_mean_DT$ss[!grepl("^random_", ss_mean_DT$region)], 
+       col = "red")
+mtext(text = paste0(fss_metric, " - nRandom = ", nRandom), side=3)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
 
 
 ######################################################################################

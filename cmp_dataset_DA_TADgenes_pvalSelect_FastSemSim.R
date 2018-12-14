@@ -175,7 +175,7 @@ if(buildTable){
         newOrder <- c(which(!colnames(curr_TAD_genes_fssDT) %in% c("ss")), which(colnames(curr_TAD_genes_fssDT) %in% c("ss")))
         curr_TAD_genes_fssDT <- curr_TAD_genes_fssDT[, newOrder]
         write.table(curr_TAD_genes_fssDT[1:5,], col.names=T, row.names=F, sep="\t", quote=F, file="")
-        stopifnot(is.numeric(curr_TAD_genes_fssDT$ss))
+        #stopifnot(is.numeric(curr_TAD_genes_fssDT$ss)) # not true if all NA
         
         curr_TAD_genes_fssDT$dataset <- curr_ds
         curr_TAD_genes_fssDT$region <- curr_tad
@@ -250,7 +250,7 @@ if(buildTable){
         newOrder <- c(which(!colnames(curr_TAD_genes_fssDT) %in% c("ss")), which(colnames(curr_TAD_genes_fssDT) %in% c("ss")))
         curr_TAD_genes_fssDT <- curr_TAD_genes_fssDT[, newOrder]
         write.table(curr_TAD_genes_fssDT[1:5,], col.names=T, row.names=F, sep="\t", quote=F, file="")
-        stopifnot(is.numeric(curr_TAD_genes_fssDT$ss))
+        #stopifnot(is.numeric(curr_TAD_genes_fssDT$ss)) # not true if NA
         
         curr_TAD_genes_fssDT$dataset <- curr_ds
         curr_TAD_genes_fssDT$region <- curr_tad

@@ -64,7 +64,7 @@ gffDT_file <- file.path(setDir, "/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_POS
 gffDT <- read.delim(gffDT_file, header=T, stringsAsFactors = F)
 gffDT$entrezID <- as.character(gffDT$entrezID)
 
-outFold <- file.path("CMP_TADs_GENES_FASTSEMSIM_pvalSelect_CHECK",nTopDS,rankVar)
+outFold <- file.path("CMP_DE_TADs_GENES_FASTSEMSIM_pvalSelect_1412",nTopDS,rankVar)
 system(paste0("mkdir -p ", outFold))
 
 logFile <- file.path(outFold, "cmp_tads_genes_go_logFile.txt")
@@ -169,7 +169,7 @@ stopifnot(!is.na(topDS))
 #all_ds <- all_ds[1:3]
 curr_ds="TCGAcoad_msi_mss"
 
-topDS <- topDS[1:2]
+#topDS <- topDS[1:2]
 
 if(buildTable){
   all_ds_semSim_DT <- foreach(curr_ds = topDS, .combine='rbind') %do% {
@@ -272,7 +272,7 @@ if(buildTable){
       # save(selectGenes_fssDT, file = check_outFile)
       # cat("written = ", check_outFile, "\n")
       # # stop("--ok\n")
-      stopifnot(is.numeric(selectGenes_fssDT$ss))
+      # stopifnot(is.numeric(selectGenes_fssDT$ss)) # not true if NA
       selectGenes_nTestedPairs <- nrow(selectTADs_genes_fssDT)
       selectGenes_fssDT <- na.omit(selectGenes_fssDT)
       selectGenes_nSS <- nrow(selectTADs_genes_fssDT)
@@ -313,7 +313,7 @@ if(buildTable){
       # save(selectTADs_genes_fssDT, file = check_outFile)
       # cat("written = ", check_outFile, "\n")
       # # stop("--ok\n")
-      stopifnot(is.numeric(selectTADs_genes_fssDT$ss))
+      # stopifnot(is.numeric(selectTADs_genes_fssDT$ss))# not TRUE if NA
       selectTADs_genes_nTestedPairs <- nrow(selectTADs_genes_fssDT)
       selectTADs_genes_fssDT <- na.omit(selectTADs_genes_fssDT)
       selectTADs_genes_nSS <- nrow(selectTADs_genes_fssDT)
@@ -323,10 +323,6 @@ if(buildTable){
         selectTADs_genes_meanSS <- mean(selectTADs_genes_fssDT$ss)  
       }
       
-        
-        
-        
-        
     }else {
       selectTADs_genes_nTestedPairs <- NA
       selectTADs_genes_nSS <- NA

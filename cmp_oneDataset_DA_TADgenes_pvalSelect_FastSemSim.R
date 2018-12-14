@@ -196,6 +196,7 @@ if(buildTable){
         dataset= curr_ds,
         region= NA,
         region_adjPval = NA,
+        region_type = NA,
         gene1_entrezID =NA, 
         gene2_entrezID =NA,
         gene1_symbol=NA,
@@ -222,6 +223,9 @@ if(buildTable){
       
       
       nsTADs_fastSemSim_DT <- foreach(curr_tad = nsTADs, .combine='rbind') %dopar% {
+
+        curr_tad_pval <- tad_pval[curr_tad]
+        stopifnot(is.numeric(curr_tad_pval))
         
         stopifnot(curr_tad %in% gene2tad_DT$region)
         curr_TAD_genes <- gene2tad_DT$entrezID[gene2tad_DT$region == curr_tad]  
@@ -260,10 +264,14 @@ if(buildTable){
         
         curr_TAD_genes_fssDT$dataset <- curr_ds
         curr_TAD_genes_fssDT$region <- curr_tad
+        curr_TAD_genes_fssDT$region_adjPval <- curr_tad_pval
         curr_TAD_genes_fssDT$region_type <- "nsTADs"
         
         
-        curr_TAD_genes_fssDT[,c("dataset", "region", "region_type", "gene1_entrezID","gene2_entrezID","gene1_symbol","gene2_symbol","ss")]
+
+
+      curr_TAD_genes_fssDT[,c("dataset", "region", "region_adjPval", "region_type", "gene1_entrezID","gene2_entrezID","gene1_symbol","gene2_symbol","ss")]
+
         
       }
     } else {
@@ -271,6 +279,7 @@ if(buildTable){
         dataset= curr_ds,
         region= NA,
         region_adjPval = NA,
+        region_type = NA,
         gene1_entrezID =NA, 
         gene2_entrezID =NA,
         gene1_symbol=NA,
@@ -297,11 +306,32 @@ save(all_ds_DA_TADs_fastSemSim_DT, file = outFile)
 cat(paste0("... written: ", outFile, "\n"))
     
     
+# ~1h
+load("CMP_ONEDATASET_DA_TADGENES_FASTSEMSIM_pvalSelect_1312/SimGIC/TCGAcoad_msi_mss/all_ds_DA_TADs_fastSemSim_DT.Rdata")
     
+all_ds_DA_TADs_fastSemSim_DT <- na.omit(all_ds_DA_TADs_fastSemSim_DT)
+all_ds_DA_TADs_fastSemSim_DT <- all_ds_DA_TADs_fastSemSim_DT[all_ds_DA_TADs_fastSemSim_DT$gene1_entrezID != all_ds_DA_TADs_fastSemSim_DT$gene2_entrezID,]
+
+plot(
+  x = all_ds_DA_TADs_fastSemSim_DT$region_adjPval,
+  y = all_ds_DA_TADs_fastSemSim_DT$ss,
+  pch=16, cex=0.7,
+  xlab = "TAD adj. pval",
+  ylab = "gene pair SS",
+  cex.lab=1.2, cex.axis=1.2
+)
     
-    
-    
-    
+plot(
+  x = all_ds_DA_TADs_fastSemSim_DT$region_adjPval[all_ds_DA_TADs_fastSemSim_DT$region_adjPval <= 0.05],
+  y = all_ds_DA_TADs_fastSemSim_DT$ss[all_ds_DA_TADs_fastSemSim_DT$region_adjPval <= 0.05],
+  pch=16, cex=0.7,
+  xlab = "TAD adj. pval",
+  ylab = "gene pair SS",
+  cex.lab=1.2, cex.axis=1.2
+)
+
+# densityplot
+# aggregate by mean
     
     
     
