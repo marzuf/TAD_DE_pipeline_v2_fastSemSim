@@ -14,7 +14,7 @@ suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = T
 SSHFS <- F
 setDir <- ifelse(SSHFS, "/media/electron", "")
 
-buildTable <- T
+buildTable <- F
 
 plotType <- "svg"
 myHeightGG <- 7
@@ -296,14 +296,18 @@ if(buildTable){
     
   } # end iterating datasets
     
-
-} # end if buildtable
+  outFile <-     file.path(outFold, "all_ds_DA_TADs_fastSemSim_DT.Rdata")
+  save(all_ds_DA_TADs_fastSemSim_DT, file = outFile)
+  cat(paste0("... written: ", outFile, "\n"))
+  
+} else {# end if buildtable
+    
+  outFile <-     file.path(outFold, "all_ds_DA_TADs_fastSemSim_DT.Rdata")
+  all_ds_DA_TADs_fastSemSim_DT <- eval(parse(text = load(outFile)))
+  
+}
     
     
-    
-outFile <-     file.path(outFold, "all_ds_DA_TADs_fastSemSim_DT.Rdata")
-save(all_ds_DA_TADs_fastSemSim_DT, file = outFile)
-cat(paste0("... written: ", outFile, "\n"))
     
     
 # ~1h
@@ -312,6 +316,10 @@ load("CMP_ONEDATASET_DA_TADGENES_FASTSEMSIM_pvalSelect_1312/SimGIC/TCGAcoad_msi_
 all_ds_DA_TADs_fastSemSim_DT <- na.omit(all_ds_DA_TADs_fastSemSim_DT)
 all_ds_DA_TADs_fastSemSim_DT <- all_ds_DA_TADs_fastSemSim_DT[all_ds_DA_TADs_fastSemSim_DT$gene1_entrezID != all_ds_DA_TADs_fastSemSim_DT$gene2_entrezID,]
 
+mySub <- paste0(curr_ds, " (n pairs = ", nrow(all_ds_DA_TADs_fastSemSim_DT), ")")
+
+outFile <- file.path(outFold, paste0("TAD_adjPval_genePair_SS.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
 plot(
   x = all_ds_DA_TADs_fastSemSim_DT$region_adjPval,
   y = all_ds_DA_TADs_fastSemSim_DT$ss,
@@ -320,7 +328,12 @@ plot(
   ylab = "gene pair SS",
   cex.lab=1.2, cex.axis=1.2
 )
-    
+mtext(side=3, text = mySub)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
+
+outFile <- file.path(outFold, paste0("TAD_adjPval_genePair_SS_signifOnly.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
 plot(
   x = all_ds_DA_TADs_fastSemSim_DT$region_adjPval[all_ds_DA_TADs_fastSemSim_DT$region_adjPval <= 0.05],
   y = all_ds_DA_TADs_fastSemSim_DT$ss[all_ds_DA_TADs_fastSemSim_DT$region_adjPval <= 0.05],
@@ -329,20 +342,140 @@ plot(
   ylab = "gene pair SS",
   cex.lab=1.2, cex.axis=1.2
 )
+mtext(side=3, text = paste0(mySub, " - signif. TADs only"))
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
+
+outFile <- file.path(outFold, paste0("TAD_adjPval_genePair_SS_densityplot.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+densplot(
+  x = all_ds_DA_TADs_fastSemSim_DT$region_adjPval,
+  y = all_ds_DA_TADs_fastSemSim_DT$ss,
+  pch=16, cex=0.7,
+  xlab = "TAD adj. pval",
+  ylab = "gene pair SS",
+  cex.lab=1.2, cex.axis=1.2
+)
+mtext(side=3, text = mySub)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
+
+outFile <- file.path(outFold, paste0("TAD_adjPval_genePair_SS_densityplot_signifOnly.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+densplot(
+  x = all_ds_DA_TADs_fastSemSim_DT$region_adjPval[all_ds_DA_TADs_fastSemSim_DT$region_adjPval <= 0.05],
+  y = all_ds_DA_TADs_fastSemSim_DT$ss[all_ds_DA_TADs_fastSemSim_DT$region_adjPval <= 0.05],
+  pch=16, cex=0.7,
+  xlab = "TAD adj. pval",
+  ylab = "gene pair SS",
+  cex.lab=1.2, cex.axis=1.2
+)
+mtext(side=3, text = paste0(mySub, " - signif. TADs only"))
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
+
+outFile <- file.path(outFold, paste0("TAD_adjPval_genePair_SS_multiDens.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth*1.5))
+plot_multiDens(
+  list(
+    nsTADs = na.omit(all_ds_DA_TADs_fastSemSim_DT$ss[all_ds_DA_TADs_fastSemSim_DT$region_type=="nsTADs"]),
+    selectTADs = na.omit(all_ds_DA_TADs_fastSemSim_DT$ss[all_ds_DA_TADs_fastSemSim_DT$region_type=="selectTADs"])
+  ),
+  plotTit = paste0("All SS"),
+  my_xlab = paste0("SS (", fss_metric, ")")
+)
+mtext(side=3, text = mySub)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
+
+
+
+
 
 # densityplot
 # aggregate by mean
     
+mean_ss_DT <- aggregate(ss ~ dataset + region + region_adjPval + region_type, 
+                        data = all_ds_DA_TADs_fastSemSim_DT, mean, na.rm=T)
     
+stopifnot(!duplicated(mean_ss_DT$region))
+
+mySub <- paste0(curr_ds, "(n TADs = ", nrow(mean_ss_DT), ")")
     
-    
-    
-    
-    
-    
-    
+outFile <- file.path(outFold, paste0("TAD_adjPval_TADmean_SS_multiDens.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth*1.5))
+plot_multiDens(
+  list(
+    nsTADs = na.omit(mean_ss_DT$ss[mean_ss_DT$region_type=="nsTADs"]),
+    selectTADs = na.omit(mean_ss_DT$ss[mean_ss_DT$region_type=="selectTADs"])
+  ),
+  plotTit = paste0("TAD mean SS"),
+  my_xlab = paste0("SS (", fss_metric, ")")
+)
+mtext(side=3, text = paste0(mySub))
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
 
 
+outFile <- file.path(outFold, paste0("TAD_adjPval_TADmean_SS.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+plot(
+  x = mean_ss_DT$region_adjPval,
+  y = mean_ss_DT$ss,
+  pch=16, cex=0.7,
+  xlab = "TAD adj. pval",
+  ylab = "TAD mean SS",
+  cex.lab=1.2, cex.axis=1.2
+)
+mtext(side=3, text = paste0(mySub))
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
+
+
+
+outFile <- file.path(outFold, paste0("TAD_adjPval_TADmean_SS_signifOnly.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+plot(
+  x = mean_ss_DT$region_adjPval[mean_ss_DT$region_adjPval <= 0.05],
+  y = mean_ss_DT$ss[mean_ss_DT$region_adjPval <= 0.05],
+  pch=16, cex=0.7,
+  xlab = "TAD adj. pval",
+  ylab = "TAD mean SS",
+  cex.lab=1.2, cex.axis=1.2
+)
+mtext(side=3, text = paste0(mySub))
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
+
+
+outFile <- file.path(outFold, paste0("TAD_adjPval_TADmean_SS_densityplot.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+densplot(
+  x = mean_ss_DT$region_adjPval,
+  y = mean_ss_DT$ss,
+  pch=16, cex=0.7,
+  xlab = "TAD adj. pval",
+  ylab = "TAD mean SS",
+  cex.lab=1.2, cex.axis=1.2
+)
+mtext(side=3, text = paste0(mySub))
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
+
+outFile <- file.path(outFold, paste0("TAD_adjPval_TADmean_SS_densityplot_signifOnly.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width=myWidth))
+densplot(
+  x = mean_ss_DT$region_adjPval[mean_ss_DT$region_adjPval <= 0.05],
+  y = mean_ss_DT$ss[mean_ss_DT$region_adjPval <= 0.05],
+  pch=16, cex=0.7,
+  xlab = "TAD adj. pval",
+  ylab = "TAD mean SS",
+  cex.lab=1.2, cex.axis=1.2
+)
+mtext(side=3, text = paste0(mySub))
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
+    
 ######################################################################################
 ######################################################################################
 ######################################################################################

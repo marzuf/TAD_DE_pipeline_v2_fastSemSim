@@ -101,7 +101,7 @@ curr_ds="TCGAcoad_msi_mss"
 topDS <- "TCGAcoad_msi_mss"
 
 topDS <- all_ds[1:3]
-topDS <- all_ds
+topDS <- all_ds[1]
 
 if(buildTable){
   all_ds_DA_TADs_fastSemSim_DT <- foreach(curr_ds = topDS, .combine='rbind') %do% {
@@ -190,7 +190,8 @@ if(buildTable){
       selectTADs_fastSemSim_DT <- data.frame(
         dataset= curr_ds,
         region= NA,
-        region_adjPval = NA,
+        region_adjPval= NA,
+        region_type = NA,
         gene1_entrezID =NA, 
         gene2_entrezID =NA,
         gene1_symbol=NA,
@@ -216,6 +217,9 @@ if(buildTable){
     if(nNsTADs > 0){
       
       nsTADs_fastSemSim_DT <- foreach(curr_tad = nsTADs, .combine='rbind') %dopar% {
+
+        curr_tad_pval <- tad_pval[curr_tad]
+        stopifnot(is.numeric(curr_tad_pval))
         
         stopifnot(curr_tad %in% gene2tad_DT$region)
         curr_TAD_genes <- gene2tad_DT$entrezID[gene2tad_DT$region == curr_tad]  
@@ -254,10 +258,11 @@ if(buildTable){
         
         curr_TAD_genes_fssDT$dataset <- curr_ds
         curr_TAD_genes_fssDT$region <- curr_tad
+        curr_TAD_genes_fssDT$region_adjPval <- curr_tad_pval
         curr_TAD_genes_fssDT$region_type <- "nsTADs"
         
         
-        curr_TAD_genes_fssDT[,c("dataset", "region", "region_type", "gene1_entrezID","gene2_entrezID","gene1_symbol","gene2_symbol","ss")]
+        curr_TAD_genes_fssDT[,c("dataset", "region", "region_adjPval", "region_type", "gene1_entrezID","gene2_entrezID","gene1_symbol","gene2_symbol","ss")]
         
       }
     } else {
@@ -265,6 +270,7 @@ if(buildTable){
         dataset= curr_ds,
         region= NA,
         region_adjPval = NA,
+        region_type = NA,
         gene1_entrezID =NA, 
         gene2_entrezID =NA,
         gene1_symbol=NA,

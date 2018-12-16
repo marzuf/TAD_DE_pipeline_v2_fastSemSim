@@ -1,7 +1,9 @@
 startTime <- Sys.time()
-cat(paste0("> Rscript cmp_DE_TADs_genes_pvalSelect_FastSemSim.R\n"))
+cat(paste0("> Rscript cmp_DE_TADs_genes_pvalSelect_FastSemSim_allValues.R\n"))
 
-# Rscript cmp_DE_TADs_genes_pvalSelect_FastSemSim.R
+# Rscript cmp_DE_TADs_genes_pvalSelect_FastSemSim_allValues.R
+
+# allValues -> do not aggregate by the mean !
 
 options(scipen=100)
 
@@ -64,7 +66,7 @@ gffDT_file <- file.path(setDir, "/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_POS
 gffDT <- read.delim(gffDT_file, header=T, stringsAsFactors = F)
 gffDT$entrezID <- as.character(gffDT$entrezID)
 
-outFold <- file.path("CMP_DE_TADs_GENES_FASTSEMSIM_pvalSelect_TCGA",nTopDS,rankVar)
+outFold <- file.path("CMP_DE_TADs_GENES_FASTSEMSIM_pvalSelect_ALL_VALUES",nTopDS,rankVar)
 system(paste0("mkdir -p ", outFold))
 
 logFile <- file.path(outFold, "cmp_tads_genes_go_logFile.txt")
@@ -175,6 +177,8 @@ curr_ds="TCGAcoad_msi_mss"
 
 topDS <- tcga_ds
 
+topDS <- "TCGAcoad_msi_mss"
+
 if(buildTable){
   all_ds_semSim_DT <- foreach(curr_ds = topDS, .combine='rbind') %do% {
     # all_ds_DT <- foreach(curr_ds = topDS, .combine='rbind') %dopar% {
@@ -264,33 +268,39 @@ if(buildTable){
         otherFastSemSimParams = otherFSSparams
       )
       write.table(selectGenes_fssDT[1:5,], col.names=T, row.names=F, sep="\t", quote=F, file="")
-      # stopifnot("obj_1" %in% colnames(selectGenes_fssDT))
-      # stopifnot("obj_2" %in% colnames(selectGenes_fssDT))
-      # selectGenes_fssDT$gene1_entrezID <- selectGenes_fssDT$obj_1
-      # selectGenes_fssDT$gene2_entrezID <- selectGenes_fssDT$obj_2
-      # selectGenes_fssDT$gene1_symbol <- sapply(selectGenes_fssDT$gene1_entrezID, function(x) gffDT$symbol[gffDT$entrezID == x])
-      # selectGenes_fssDT$gene2_symbol <- sapply(selectGenes_fssDT$gene2_entrezID, function(x) gffDT$symbol[gffDT$entrezID == x])
-      # newOrder <- c(which(!colnames(selectGenes_fssDT) %in% c("ss")), which(colnames(selectGenes_fssDT) %in% c("ss")))
-      # selectGenes_fssDT <- selectGenes_fssDT[, newOrder]
-      # check_outFile <- file.path(outFold, paste0(curr_ds, "selectGenes_fssDT.Rdata"))
-      # save(selectGenes_fssDT, file = check_outFile)
-      # cat("written = ", check_outFile, "\n")
-      # # stop("--ok\n")
-      # stopifnot(is.numeric(selectGenes_fssDT$ss)) # not true if NA
-      selectGenes_nTestedPairs <- nrow(selectTADs_genes_fssDT)
-      selectGenes_fssDT <- na.omit(selectGenes_fssDT)
-      selectGenes_nSS <- nrow(selectTADs_genes_fssDT)
-      if(nrow(selectGenes_fssDT) == 0) {
-        selectGenes_meanSS <- NA
-      } else{
-        selectGenes_meanSS <- mean(selectGenes_fssDT$ss)  
-      }
+      stopifnot("obj_1" %in% colnames(selectGenes_fssDT))
+      stopifnot("obj_2" %in% colnames(selectGenes_fssDT))
+      selectGenes_fssDT$gene1_entrezID <- selectGenes_fssDT$obj_1
+      selectGenes_fssDT$gene2_entrezID <- selectGenes_fssDT$obj_2
+      selectGenes_fssDT$gene1_symbol <- sapply(selectGenes_fssDT$gene1_entrezID, function(x) gffDT$symbol[gffDT$entrezID == x])
+      selectGenes_fssDT$gene2_symbol <- sapply(selectGenes_fssDT$gene2_entrezID, function(x) gffDT$symbol[gffDT$entrezID == x])
+      newOrder <- c(which(!colnames(selectGenes_fssDT) %in% c("ss")), which(colnames(selectGenes_fssDT) %in% c("ss")))
+      selectGenes_fssDT <- selectGenes_fssDT[, newOrder]
+            # check_outFile <- file.path(outFold, paste0(curr_ds, "selectGenes_fssDT.Rdata"))
+            # save(selectGenes_fssDT, file = check_outFile)
+            # cat("wsritten = ", check_outFile, "\n")
+            # # stop("--ok\n")
+            # stopifnot(is.numeric(selectGenes_fssDT$ss)) # not true if NA
+      
+                      # selectGenes_nTestedPairs <- nrow(selectTADs_genes_fssDT)
+                      # selectGenes_fssDT <- na.omit(selectGenes_fssDT)
+                      # selectGenes_nSS <- nrow(selectTADs_genes_fssDT)
+                    # if(nrow(selectGenes_fssDT) == 0) {
+                    #   selectGenes_meanSS <- NA
+                    # } else{
+                    #   selectGenes_meanSS <- mean(selectGenes_fssDT$ss)  
+                    # }
     } else {
-      selectGenes_nTestedPairs <- NA
-      selectGenes_nSS <- NA
-      selectGenes_meanSS <- NA
+      selectGenes_fssDT <- data.frame(
+        "gene1_entrezID"=NA,"gene2_entrezID"=NA,"gene1_symbol"=NA,"gene2_symbol"=NA,"ss"=NA,
+        stringsAsFactors = FALSE)
     }
-        
+    selectGenes_fssDT$dataset <- curr_ds
+    selectGenes_fssDT$geneType <- "selectGenes"  
+    selectGenes_fssDT <- selectGenes_fssDT[,c("dataset", "geneType",
+                                              "gene1_entrezID","gene2_entrezID","gene1_symbol","gene2_symbol","ss")]
+    
+      
     if(nSelectTADs_genes > 1) {
         
       # selectTADs_genes <- selectTADs_genes[1:10]
@@ -305,43 +315,55 @@ if(buildTable){
         otherFastSemSimParams = otherFSSparams
       )
       write.table(selectTADs_genes_fssDT[1:5,], col.names=T, row.names=F, sep="\t", quote=F, file="")
-      # stopifnot("obj_1" %in% colnames(selectTADs_genes_fssDT))
-      # stopifnot("obj_2" %in% colnames(selectTADs_genes_fssDT))
-      # selectTADs_genes_fssDT$gene1_entrezID <- selectTADs_genes_fssDT$obj_1
-      # selectTADs_genes_fssDT$gene2_entrezID <- selectTADs_genes_fssDT$obj_2
-      # selectTADs_genes_fssDT$gene1_symbol <- sapply(selectTADs_genes_fssDT$gene1_entrezID, function(x) gffDT$symbol[gffDT$entrezID == x])
-      # selectTADs_genes_fssDT$gene2_symbol <- sapply(selectTADs_genes_fssDT$gene2_entrezID, function(x) gffDT$symbol[gffDT$entrezID == x])
-      # newOrder <- c(which(!colnames(selectTADs_genes_fssDT) %in% c("ss")), which(colnames(selectTADs_genes_fssDT) %in% c("ss")))
-      # selectTADs_genes_fssDT <- selectTADs_genes_fssDT[, newOrder]
-      # check_outFile <- file.path(outFold, paste0(curr_ds, "selectTADs_genes_fssDT.Rdata"))
-      # save(selectTADs_genes_fssDT, file = check_outFile)
-      # cat("written = ", check_outFile, "\n")
-      # # stop("--ok\n")
-      # stopifnot(is.numeric(selectTADs_genes_fssDT$ss))# not TRUE if NA
-      selectTADs_genes_nTestedPairs <- nrow(selectTADs_genes_fssDT)
-      selectTADs_genes_fssDT <- na.omit(selectTADs_genes_fssDT)
-      selectTADs_genes_nSS <- nrow(selectTADs_genes_fssDT)
-      if(nrow(selectTADs_genes_fssDT) == 0) {
-        selectTADs_genes_meanSS <- NA
-      } else{
-        selectTADs_genes_meanSS <- mean(selectTADs_genes_fssDT$ss)  
-      }
+      stopifnot("obj_1" %in% colnames(selectTADs_genes_fssDT))
+      stopifnot("obj_2" %in% colnames(selectTADs_genes_fssDT))
+      selectTADs_genes_fssDT$gene1_entrezID <- selectTADs_genes_fssDT$obj_1
+      selectTADs_genes_fssDT$gene2_entrezID <- selectTADs_genes_fssDT$obj_2
+      selectTADs_genes_fssDT$gene1_symbol <- sapply(selectTADs_genes_fssDT$gene1_entrezID, function(x) gffDT$symbol[gffDT$entrezID == x])
+      selectTADs_genes_fssDT$gene2_symbol <- sapply(selectTADs_genes_fssDT$gene2_entrezID, function(x) gffDT$symbol[gffDT$entrezID == x])
+      newOrder <- c(which(!colnames(selectTADs_genes_fssDT) %in% c("ss")), which(colnames(selectTADs_genes_fssDT) %in% c("ss")))
+      selectTADs_genes_fssDT <- selectTADs_genes_fssDT[, newOrder]
+              # check_outFile <- file.path(outFold, paste0(curr_ds, "selectTADs_genes_fssDT.Rdata"))
+              # save(selectTADs_genes_fssDT, file = check_outFile)
+              # cat("written = ", check_outFile, "\n")
+              # stop("--ok\n")
+              # stopifnot(is.numeric(selectTADs_genes_fssDT$ss))# not TRUE if NA
+                # selectTADs_genes_nTestedPairs <- nrow(selectTADs_genes_fssDT)
+                # selectTADs_genes_fssDT <- na.omit(selectTADs_genes_fssDT)
+                # selectTADs_genes_nSS <- nrow(selectTADs_genes_fssDT)
+      # if(nrow(selectTADs_genes_fssDT) == 0) {
+      #   selectTADs_genes_meanSS <- NA
+      # } else{
+      #   selectTADs_genes_meanSS <- mean(selectTADs_genes_fssDT$ss)  
+      # }
       
     }else {
-      selectTADs_genes_nTestedPairs <- NA
-      selectTADs_genes_nSS <- NA
-      selectTADs_genes_meanSS <- NA
-    }
+              # selectTADs_genes_nTestedPairs <- NA
+              # selectTADs_genes_nSS <- NA
+              # selectTADs_genes_meanSS <- NA
+      selectTADs_genes_fssDT <- data.frame(
+        "gene1_entrezID"=NA,"gene2_entrezID"=NA,"gene1_symbol"=NA,"gene2_symbol"=NA,"ss"=NA,
+        stringsAsFactors = FALSE)
       
-    data.frame(dataset=curr_ds,
-      selectTADs_genes_nTestedPairs = selectTADs_genes_nTestedPairs,
-      selectTADs_genes_nSS = selectTADs_genes_nSS,
-      selectTADs_genes_meanSS = selectTADs_genes_meanSS,
-      selectGenes_nTestedPairs = selectGenes_nTestedPairs,
-      selectGenes_nSS = selectGenes_nSS,
-      selectGenes_meanSS = selectGenes_meanSS,
-stringsAsFactors=FALSE
-    )    
+    }
+    selectTADs_genes_fssDT$dataset <- curr_ds
+    selectTADs_genes_fssDT$geneType <- "selectTADs_genes"  
+    selectTADs_genes_fssDT <- selectTADs_genes_fssDT[,c("dataset", "geneType",
+                                              "gene1_entrezID","gene2_entrezID","gene1_symbol","gene2_symbol","ss")]
+    
+    
+      
+#     data.frame(dataset=curr_ds,
+#       selectTADs_genes_nTestedPairs = selectTADs_genes_nTestedPairs,
+#       selectTADs_genes_nSS = selectTADs_genes_nSS,
+#       selectTADs_genes_meanSS = selectTADs_genes_meanSS,
+#       selectGenes_nTestedPairs = selectGenes_nTestedPairs,
+#       selectGenes_nSS = selectGenes_nSS,
+#       selectGenes_meanSS = selectGenes_meanSS,
+# stringsAsFactors=FALSE
+#     )    
+    
+    rbind(selectGenes_fssDT, selectTADs_genes_fssDT)
 
 
   } # end iterating over curr_ds
