@@ -1,12 +1,12 @@
 startTime <- Sys.time()
-cat(paste0("> Rscript cmp_DE_TADs_genes_pvalSelect_FastSemSim_allValues.R\n"))
+cat(paste0("> Rscript inputFile_cmp_DE_TADs_genes_pvalSelect_FastSemSim_allValues.R\n"))
 
-# Rscript cmp_DE_TADs_genes_pvalSelect_FastSemSim_allValues.R
+# Rscript inputFile_cmp_DE_TADs_genes_pvalSelect_FastSemSim_allValues.R
 
 # allValues -> do not aggregate by the mean !
 
 options(scipen=100)
-
+suppressPackageStartupMessages(library(data.table, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE)) 
 suppressPackageStartupMessages(library(foreach, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE)) 
 suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = TRUE, verbose = FALSE)) 
 
@@ -16,7 +16,7 @@ setDir <- ifelse(SSHFS, "/media/electron", "")
 
 buildTable <- FALSE
 
-plotType <- "svg"
+plotType <- "png"
 myHeightGG <- 7
 myWidthGG <- 10
 myHeight <- ifelse(plotType == "png", 300, 7)
@@ -34,7 +34,6 @@ registerDoMC(ifelse(SSHFS, 2, 30))
 
 if(SSHFS) setwd("/media/electron/mnt/ed4/marie/scripts/TAD_DE_pipeline_v2_fastSemSim")
 source("utils.R")
-source("run_fastSemSim.R")
 
 nTopDS <- 5
 rankVar <- "FCC"
@@ -45,7 +44,7 @@ if(length(args) >= 1) {
     nTopDS <- as.numeric(args[1])
 }
 if(length(args) == 2) {
-    rankVar <- args[2]
+  rankVar <- args[2]
 }
 stopifnot(rankVar %in% c("FCC", "coexpr", "avg"))
 
@@ -62,11 +61,11 @@ gene2tad_DT <- read.delim(gene2tadDT_file, header=F, stringsAsFactors = F, col.n
 gene2tad_DT$entrezID <- as.character(gene2tad_DT$entrezID)
 
 # HARD CODED
-gffDT_file <- file.path(setDir, "/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_POS/gff_entrez_position_GRCh37p13_nodup.txt")
-gffDT <- read.delim(gffDT_file, header=T, stringsAsFactors = F)
-gffDT$entrezID <- as.character(gffDT$entrezID)
+# gffDT_file <- file.path(setDir, "/mnt/ed4/marie/entrez2synonym/entrez/ENTREZ_POS/gff_entrez_position_GRCh37p13_nodup.txt")
+# gffDT <- read.delim(gffDT_file, header=T, stringsAsFactors = F)
+# gffDT$entrezID <- as.character(gffDT$entrezID)
 
-outFold <- file.path("CMP_DE_TADs_GENES_FASTSEMSIM_pvalSelect_ALL_VALUES",nTopDS,rankVar)
+outFold <- file.path("INPUTFILE_CMP_DE_TADs_GENES_FASTSEMSIM_pvalSelect_ALL_VALUES",nTopDS,rankVar)
 system(paste0("mkdir -p ", outFold))
 
 logFile <- file.path(outFold, "cmp_tads_genes_go_logFile.txt")
@@ -86,32 +85,33 @@ txt <- paste0("... found # datasets:\t", length(all_ds), "\n")
 printAndLog(txt, logFile)
 
 # settings for FastSemSim
-fss_acFile <- file.path(setDir, "/mnt/ed4/marie/software/fastsemsim-0.9.4/fastsemsim/mz_data/goa_human_entrezID.gaf")
-stopifnot(file.exists(fss_acFile))
 fss_metric <- "SimGIC"
+fss_combType <- "max"
 
-IC_table_inFile <- file.path("ALL_ENTREZ_GENES_IC_TABLE/output",
-                          paste0("all_entrez_GeneOntology_biological_process_", fss_metric, "_max_IC_table.txt"))
-stopifnot(file.exists(IC_table_inFile))
+SS_inFile <- file.path("ALL_GENES_FASTSEMSIM/output", paste0("all_datasets_GeneOntology_biological_process_", fss_metric, "_", fss_combType, "_result_file.txt"))
+stopifnot(file.exists(SS_inFile))
 
-otherFSSparams <- list("--ac_file" = fss_acFile)
-
-
-txt <- paste0("... fss_acFile:\t", length(fss_acFile), "\n")
+txt <- paste0("... SS_inFile:\t", SS_inFile, "\n")
 printAndLog(txt, logFile)
 
-txt <- paste0("... fss_metric:\t", length(fss_metric), "\n")
-printAndLog(txt, logFile)
-
-txt <- paste0("... IC_table_inFile:\t", length(IC_table_inFile), "\n")
-printAndLog(txt, logFile)
+if(buildTable) {
+  cat("... load all SS input file: ", SS_inFile, "\n")
+  ssDT <- fread(SS_inFile) 
+  stopifnot(colnames(ssDT) == c("obj_1", "obj_2","ss"))
+  
+  cat("... done - nrow (# gene pairs) = ", nrow(ssDT), "\n")
+  # ssDT <- na.omit(ssDT)
+  # cat("... done - nrow (# gene pairs) after na.omit = ", nrow(ssDT), "\n")
+  
+  ssDT$obj_1 <- as.character(ssDT$obj_1)
+  ssDT$obj_2 <- as.character(ssDT$obj_2)
+}
 ##########################################################################################
 ##########################################################################################
 
 # cat("all_ds[60] = ", all_ds[60], "\n")
 
 stopifnot(!is.na(all_ds))
-
 
 all_ds_aucFCC <- foreach(curr_ds = all_ds, .combine='c') %dopar% {
   ### RETRIEVE FCC
@@ -180,11 +180,10 @@ topDS <- tcga_ds
 topDS <- "TCGAcoad_msi_mss"
 
 if(buildTable){
-  all_ds_semSim_DT <- foreach(curr_ds = topDS, .combine='rbind') %do% {
+  all_ds_SS_from_file_DT <- foreach(curr_ds = topDS, .combine='rbind') %do% {
     # all_ds_DT <- foreach(curr_ds = topDS, .combine='rbind') %dopar% {
     txt <- paste0("*** START:\t", curr_ds, "\n")
     printAndLog(txt, logFile)
-    
     
     ### RETRIEVE GENES THAT ARE IN PIPELINE  
     cat("... retrieve available genes for this dataset\n")
@@ -208,7 +207,7 @@ if(buildTable){
     nSelectTADs <- length(selectTADs)
     
     nTADs <- length(tad_pval)
-  
+    
     if(nSelectTADs > 0){
       stopifnot(selectTADs %in% gene2tad_DT$region)
       selectTADs_genes <- gene2tad_DT$entrezID[gene2tad_DT$region %in% selectTADs]  
@@ -247,148 +246,68 @@ if(buildTable){
     selectGenes <- names(entrez_pval[entrez_pval <= pvalSelect])
     stopifnot(selectGenes %in% pipelineGenes)
     nSelectGenes <- length(selectGenes)
-
+    
     stopifnot(selectTADs %in% gene2tad_DT$region)
-  
+    
     if(nSelectGenes > 0){
       stopifnot(selectGenes %in% gene2tad_DT$entrezID)
       stopifnot(selectGenes %in% pipelineGenes)
     }
-      
+    
     if(length(selectGenes) > 1) {
       # selectGenes <- selectGenes[1:10]
-      ### RUN FAST_SEM_SIM FOR THE TADs GENES
-      cat("... start run_fastSemSim\n")
-      selectGenes_fssDT <- run_fastSemSim(
-        geneList = selectGenes,
-        runName = paste0(curr_ds, "_selectGenes"),
-        simMetric = fss_metric,
-        gafFile = fss_acFile,
-        icData =  IC_table_inFile,
-        otherFastSemSimParams = otherFSSparams
-      )
-      write.table(selectGenes_fssDT[1:5,], col.names=T, row.names=F, sep="\t", quote=F, file="")
-      stopifnot("obj_1" %in% colnames(selectGenes_fssDT))
-      stopifnot("obj_2" %in% colnames(selectGenes_fssDT))
-      selectGenes_fssDT$gene1_entrezID <- selectGenes_fssDT$obj_1
-      selectGenes_fssDT$gene2_entrezID <- selectGenes_fssDT$obj_2
-      selectGenes_fssDT$gene1_symbol <- sapply(selectGenes_fssDT$gene1_entrezID, function(x) gffDT$symbol[gffDT$entrezID == x])
-      selectGenes_fssDT$gene2_symbol <- sapply(selectGenes_fssDT$gene2_entrezID, function(x) gffDT$symbol[gffDT$entrezID == x])
-      newOrder <- c(which(!colnames(selectGenes_fssDT) %in% c("ss")), which(colnames(selectGenes_fssDT) %in% c("ss")))
-      selectGenes_fssDT <- selectGenes_fssDT[, newOrder]
-            # check_outFile <- file.path(outFold, paste0(curr_ds, "selectGenes_fssDT.Rdata"))
-            # save(selectGenes_fssDT, file = check_outFile)
-            # cat("wsritten = ", check_outFile, "\n")
-            # # stop("--ok\n")
-            # stopifnot(is.numeric(selectGenes_fssDT$ss)) # not true if NA
-      
-                      # selectGenes_nTestedPairs <- nrow(selectTADs_genes_fssDT)
-                      # selectGenes_fssDT <- na.omit(selectGenes_fssDT)
-                      # selectGenes_nSS <- nrow(selectTADs_genes_fssDT)
-                    # if(nrow(selectGenes_fssDT) == 0) {
-                    #   selectGenes_meanSS <- NA
-                    # } else{
-                    #   selectGenes_meanSS <- mean(selectGenes_fssDT$ss)  
-                    # }
+      cat("... retrieve SS for selectGenes\n")
+      cat("...... check that all selectGenes in ssDT\n")
+      stopifnot(selectGenes %in% ssDT$obj_1 | selectGenes %in% ssDT$obj_2)
+      cat("...... subset ssDT for selectGenes\n")
+      selectGenes_ssDT <- ssDT[ssDT$obj_1 %in% selectGenes & ssDT$obj_2 %in% selectGenes,]
     } else {
-      selectGenes_fssDT <- data.frame(
-        "gene1_entrezID"=NA,"gene2_entrezID"=NA,"gene1_symbol"=NA,"gene2_symbol"=NA,"ss"=NA,
+      selectGenes_ssDT <- data.frame(
+        "obj_1"=NA,"obj_2"=NA,"ss"=NA,
         stringsAsFactors = FALSE)
     }
-    selectGenes_fssDT$dataset <- curr_ds
-    selectGenes_fssDT$geneType <- "selectGenes"  
-    selectGenes_fssDT <- selectGenes_fssDT[,c("dataset", "geneType",
-                                              "gene1_entrezID","gene2_entrezID","gene1_symbol","gene2_symbol","ss")]
+    selectGenes_ssDT$dataset <- curr_ds
+    selectGenes_ssDT$geneType <- "selectGenes"
+    selectGenes_ssDT <- selectGenes_ssDT[,c("dataset", "geneType","obj_1", "obj_2", "ss")]
     
-      
+    
     if(nSelectTADs_genes > 1) {
-        
-      # selectTADs_genes <- selectTADs_genes[1:10]
-      ### RUN FAST_SEM_SIM FOR THE TADs GENES
-      cat("... start run_fastSemSim\n")
-      selectTADs_genes_fssDT <- run_fastSemSim(
-        geneList = selectTADs_genes,
-        runName = paste0(curr_ds, "_selectTADs_genes"),
-        simMetric = fss_metric,
-        gafFile = fss_acFile,
-        icData =  IC_table_inFile,
-        otherFastSemSimParams = otherFSSparams
-      )
-      write.table(selectTADs_genes_fssDT[1:5,], col.names=T, row.names=F, sep="\t", quote=F, file="")
-      stopifnot("obj_1" %in% colnames(selectTADs_genes_fssDT))
-      stopifnot("obj_2" %in% colnames(selectTADs_genes_fssDT))
-      selectTADs_genes_fssDT$gene1_entrezID <- selectTADs_genes_fssDT$obj_1
-      selectTADs_genes_fssDT$gene2_entrezID <- selectTADs_genes_fssDT$obj_2
-      selectTADs_genes_fssDT$gene1_symbol <- sapply(selectTADs_genes_fssDT$gene1_entrezID, function(x) gffDT$symbol[gffDT$entrezID == x])
-      selectTADs_genes_fssDT$gene2_symbol <- sapply(selectTADs_genes_fssDT$gene2_entrezID, function(x) gffDT$symbol[gffDT$entrezID == x])
-      newOrder <- c(which(!colnames(selectTADs_genes_fssDT) %in% c("ss")), which(colnames(selectTADs_genes_fssDT) %in% c("ss")))
-      selectTADs_genes_fssDT <- selectTADs_genes_fssDT[, newOrder]
-              # check_outFile <- file.path(outFold, paste0(curr_ds, "selectTADs_genes_fssDT.Rdata"))
-              # save(selectTADs_genes_fssDT, file = check_outFile)
-              # cat("written = ", check_outFile, "\n")
-              # stop("--ok\n")
-              # stopifnot(is.numeric(selectTADs_genes_fssDT$ss))# not TRUE if NA
-                # selectTADs_genes_nTestedPairs <- nrow(selectTADs_genes_fssDT)
-                # selectTADs_genes_fssDT <- na.omit(selectTADs_genes_fssDT)
-                # selectTADs_genes_nSS <- nrow(selectTADs_genes_fssDT)
-      # if(nrow(selectTADs_genes_fssDT) == 0) {
-      #   selectTADs_genes_meanSS <- NA
-      # } else{
-      #   selectTADs_genes_meanSS <- mean(selectTADs_genes_fssDT$ss)  
-      # }
-      
+      cat("... retrieve SS for selectTADs_Genes\n")
+      cat("...... check that all selectTADs_genes in ssDT\n")
+      stopifnot(selectTADs_genes %in% ssDT$obj_1 | selectTADs_genes %in% ssDT$obj_2)
+      cat("...... subset ssDT for selectGenes\n")
+      selectTADs_genes_ssDT <- ssDT[ssDT$obj_1 %in% selectTADs_genes & ssDT$obj_2 %in% selectTADs_genes,]
     }else {
-              # selectTADs_genes_nTestedPairs <- NA
-              # selectTADs_genes_nSS <- NA
-              # selectTADs_genes_meanSS <- NA
-      selectTADs_genes_fssDT <- data.frame(
-        "gene1_entrezID"=NA,"gene2_entrezID"=NA,"gene1_symbol"=NA,"gene2_symbol"=NA,"ss"=NA,
+      selectTADs_genes_ssDT <- data.frame(
+        "obj_1"=NA,"obj_2"=NA,"ss"=NA,
         stringsAsFactors = FALSE)
-      
     }
-    selectTADs_genes_fssDT$dataset <- curr_ds
-    selectTADs_genes_fssDT$geneType <- "selectTADs_genes"  
-    selectTADs_genes_fssDT <- selectTADs_genes_fssDT[,c("dataset", "geneType",
-                                              "gene1_entrezID","gene2_entrezID","gene1_symbol","gene2_symbol","ss")]
+    selectTADs_genes_ssDT$dataset <- curr_ds
+    selectTADs_genes_ssDT$geneType <- "selectTADs_genes"  
+    selectTADs_genes_ssDT <- selectTADs_genes_ssDT[,c("dataset", "geneType","obj_1", "obj_2", "ss")]
     
-    
-      
-#     data.frame(dataset=curr_ds,
-#       selectTADs_genes_nTestedPairs = selectTADs_genes_nTestedPairs,
-#       selectTADs_genes_nSS = selectTADs_genes_nSS,
-#       selectTADs_genes_meanSS = selectTADs_genes_meanSS,
-#       selectGenes_nTestedPairs = selectGenes_nTestedPairs,
-#       selectGenes_nSS = selectGenes_nSS,
-#       selectGenes_meanSS = selectGenes_meanSS,
-# stringsAsFactors=FALSE
-#     )    
-    
-    rbind(selectGenes_fssDT, selectTADs_genes_fssDT)
-
-
+    rbind(selectGenes_ssDT, selectTADs_genes_ssDT)
   } # end iterating over curr_ds
-
-outFile <- file.path(outFold, "all_ds_semSim_DT.Rdata")
-save(all_ds_semSim_DT, file=outFile)
-cat(paste0("... written: ", outFile, "\n"))
-} else{ # end if buildTable
-  outFile <- file.path(outFold, "all_ds_semSim_DT.Rdata")
-  cat("... load already built data\n")
-  all_ds_semSim_DT <- eval(parse(text = load(outFile)))
+  outFile <- file.path(outFold, "all_ds_SS_from_file_DT.Rdata")
+  save(all_ds_SS_from_file_DT, file=outFile)
+  cat(paste0("... written: ", outFile, "\n"))
+} else {# end if buildTable
+  outFile <- file.path(outFold, "all_ds_SS_from_file_DT.Rdata")
+  cat("... load DT\n")
+  all_ds_SS_from_file_DT <- eval(parse(text = load(outFile)))
 }
-
 cat("...na omit DT\n")
-all_ds_semSim_DT <- na.omit(all_ds_semSim_DT)
+all_ds_SS_from_file_DT <- na.omit(all_ds_SS_from_file_DT)
 cat("...unique DT$dataset\n")
-all_ds <- unique(all_ds_semSim_DT$dataset)
+all_ds <- unique(all_ds_SS_from_file_DT$dataset)
 
 mySub <- paste0(all_ds, collapse=", ")
 
 outFile <- file.path(outFold, paste0("cmpSS_selectGenes_selectTADs_genes.", plotType))
 do.call(plotType, list(outFile, height=myHeight, width = myWidth*1.5))
 plot_multiDens(
-  list(ss_selectGenes = all_ds_semSim_DT$ss[all_ds_semSim_DT$geneType == "selectGenes"],
-       ss_selectTADs_genes = all_ds_semSim_DT$ss[all_ds_semSim_DT$geneType == "selectTADs_genes"]),
+  list(ss_selectGenes = all_ds_SS_from_file_DT$ss[all_ds_SS_from_file_DT$geneType == "selectGenes"],
+       ss_selectTADs_genes = all_ds_SS_from_file_DT$ss[all_ds_SS_from_file_DT$geneType == "selectTADs_genes"]),
   plotTit = paste0("All SS values distribution"),
   my_xlab = paste0("SS (", fss_metric,")")
 )
@@ -396,24 +315,10 @@ mtext(text = mySub, side=3)
 foo <- dev.off()
 cat(paste0("... written: ", outFile, "\n"))
 
-outFile <- file.path(outFold, paste0("cmpSS_selectGenes_selectTADs_genes_cut01.", plotType))
-do.call(plotType, list(outFile, height=myHeight, width = myWidth*1.5))
-plot_multiDens(
-  list(ss_selectGenes = all_ds_semSim_DT$ss[all_ds_semSim_DT$geneType == "selectGenes" & all_ds_semSim_DT$ss < 0.1],
-       ss_selectTADs_genes = all_ds_semSim_DT$ss[all_ds_semSim_DT$geneType == "selectTADs_genes" &  all_ds_semSim_DT$ss < 0.1]),
-  plotTit = paste0("All SS values distribution - cut 0.1"),
-  my_xlab = paste0("SS (", fss_metric,")")
-)
-mtext(text = mySub, side=3)
-foo <- dev.off()
-cat(paste0("... written: ", outFile, "\n"))
-
-
-
 
 outFile <- file.path(outFold, paste0("cmpSS_selectGenes_selectTADs_genes_boxplot.", plotType))
 do.call(plotType, list(outFile, height=myHeight, width = myWidth))
-boxplot(ss ~ geneType, data = all_ds_semSim_DT,
+boxplot(ss ~ geneType, data = all_ds_SS_from_file_DT,
         outline=FALSE)
 mtext(text = mySub, side=3)
 foo <- dev.off()
@@ -424,8 +329,8 @@ cat(paste0("... written: ", outFile, "\n"))
 outFile <- file.path(outFold, paste0("cmpSS_selectGenes_selectTADs_genes_log10.", plotType))
 do.call(plotType, list(outFile, height=myHeight, width = myWidth*1.5))
 plot_multiDens(
-  list(ss_selectGenes = log10(1+all_ds_semSim_DT$ss[all_ds_semSim_DT$geneType == "selectGenes"]),
-       ss_selectTADs_genes = log10(1+all_ds_semSim_DT$ss[all_ds_semSim_DT$geneType == "selectTADs_genes"])),
+  list(ss_selectGenes = log10(1+all_ds_SS_from_file_DT$ss[all_ds_SS_from_file_DT$geneType == "selectGenes"]),
+       ss_selectTADs_genes = log10(1+all_ds_SS_from_file_DT$ss[all_ds_SS_from_file_DT$geneType == "selectTADs_genes"])),
   plotTit = paste0("All SS values distribution"),
   my_xlab = paste0("SS (", fss_metric,")")
 )
@@ -434,8 +339,6 @@ foo <- dev.off()
 cat(paste0("... written: ", outFile, "\n"))
 
 
-    
-    
 
 
 ######################################################################################
