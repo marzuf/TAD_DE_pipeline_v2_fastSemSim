@@ -14,7 +14,7 @@ suppressPackageStartupMessages(library(doMC, warn.conflicts = FALSE, quietly = T
 SSHFS <- F
 setDir <- ifelse(SSHFS, "/media/electron", "")
 
-buildTable <- FALSE
+buildTable <- TRUE
 
 plotType <- "png"
 myHeightGG <- 7
@@ -175,9 +175,11 @@ curr_ds="TCGAcoad_msi_mss"
 
 #topDS <- topDS[1:2]
 
-topDS <- tcga_ds
+#topDS <- tcga_ds
 
-topDS <- "TCGAcoad_msi_mss"
+#topDS <- "TCGAcoad_msi_mss"
+
+
 
 if(buildTable){
   all_ds_SS_from_file_DT <- foreach(curr_ds = topDS, .combine='rbind') %do% {
@@ -309,6 +311,19 @@ plot_multiDens(
   list(ss_selectGenes = all_ds_SS_from_file_DT$ss[all_ds_SS_from_file_DT$geneType == "selectGenes"],
        ss_selectTADs_genes = all_ds_SS_from_file_DT$ss[all_ds_SS_from_file_DT$geneType == "selectTADs_genes"]),
   plotTit = paste0("All SS values distribution"),
+  my_xlab = paste0("SS (", fss_metric,")")
+)
+mtext(text = mySub, side=3)
+foo <- dev.off()
+cat(paste0("... written: ", outFile, "\n"))
+
+
+outFile <- file.path(outFold, paste0("cmpSS_selectGenes_selectTADs_genes_cut.", plotType))
+do.call(plotType, list(outFile, height=myHeight, width = myWidth*1.5))
+plot_multiDens(
+  list(ss_selectGenes = all_ds_SS_from_file_DT$ss[all_ds_SS_from_file_DT$geneType == "selectGenes" & all_ds_SS_from_file_DT$ss < 0.1],
+       ss_selectTADs_genes = all_ds_SS_from_file_DT$ss[all_ds_SS_from_file_DT$geneType == "selectTADs_genes" & all_ds_SS_from_file_DT$ss < 0.1]),
+  plotTit = paste0("All SS values distribution (cut at 0.1)"),
   my_xlab = paste0("SS (", fss_metric,")")
 )
 mtext(text = mySub, side=3)
