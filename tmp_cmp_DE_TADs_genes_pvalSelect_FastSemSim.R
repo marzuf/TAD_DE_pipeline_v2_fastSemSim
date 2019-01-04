@@ -1,7 +1,7 @@
 startTime <- Sys.time()
-cat(paste0("> Rscript cmp_DE_TADs_genes_pvalSelect_FastSemSim.R\n"))
+cat(paste0("> Rscript tmp_cmp_DE_TADs_genes_pvalSelect_FastSemSim.R\n"))
 
-# Rscript cmp_DE_TADs_genes_pvalSelect_FastSemSim.R
+# Rscript tmp_cmp_DE_TADs_genes_pvalSelect_FastSemSim.R
 
 options(scipen=100)
 
@@ -36,6 +36,9 @@ source("run_fastSemSim.R")
 
 nTopDS <- 5
 rankVar <- "FCC"
+
+### ADDED FOR THE tmp_ SCRIPT VERSION - 02.01.2019
+runFolder <- file.path(".//tmp/Rtmp8j4SoF")
 
 args <- commandArgs(trailingOnly = T)
 if(length(args) >= 1) {
@@ -110,7 +113,6 @@ printAndLog(txt, logFile)
 
 stopifnot(!is.na(all_ds))
 
-
 all_ds_aucFCC <- foreach(curr_ds = all_ds, .combine='c') %dopar% {
   ### RETRIEVE FCC
   step17_fold <- file.path(dsFold, curr_ds, "170_score_auc_pval_withShuffle")
@@ -174,6 +176,8 @@ curr_ds="TCGAcoad_msi_mss"
 #topDS <- topDS[1:2]
 
 topDS <- tcga_ds
+
+# topDS="TCGAucec_msi_cnl"
 
 if(buildTable){
   all_ds_semSim_DT <- foreach(curr_ds = topDS, .combine='rbind') %do% {
@@ -254,16 +258,35 @@ if(buildTable){
     if(length(selectGenes) > 1) {
       # selectGenes <- selectGenes[1:10]
       ### RUN FAST_SEM_SIM FOR THE TADs GENES
-      cat("... start run_fastSemSim\n")
+      
+      
+      fastSemSim_resultFile <- file.path(runFolder, "output", paste0(curr_ds, "_selectGenes_result_file.txt"))
+      cat(fastSemSim_resultFile,"\n")
+      # stop("--ok\n")
+      
+      if(!file.exists(fastSemSim_resultFile)) {
+        cat("... start run_fastSemSim\n")
       selectGenes_fssDT <- run_fastSemSim(
         geneList = selectGenes,
         runName = paste0(curr_ds, "_selectGenes"),
         simMetric = fss_metric,
         gafFile = fss_acFile,
         icData =  IC_table_inFile,
-        otherFastSemSimParams = otherFSSparams
+        otherFastSemSimParams = otherFSSparams,
+        runFolder = runFolder                       ### ADDED FOR THE tmp_ SCRIPT VERSION - 02.01.2019
       )
+    } else {
+      cat("... run_fastSemSim already run\n")
+      semsim_DT <- read.delim(fastSemSim_resultFile, header=T, stringsAsFactors = FALSE)
+      # stop("--ok--\n")
+      selectGenes_fssDT <- semsim_DT
+    }
+    
       write.table(selectGenes_fssDT[1:5,], col.names=T, row.names=F, sep="\t", quote=F, file="")
+      
+      # stop("--ok--\n")
+      
+      
       # stopifnot("obj_1" %in% colnames(selectGenes_fssDT))
       # stopifnot("obj_2" %in% colnames(selectGenes_fssDT))
       # selectGenes_fssDT$gene1_entrezID <- selectGenes_fssDT$obj_1
