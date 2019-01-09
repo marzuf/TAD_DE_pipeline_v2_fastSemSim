@@ -6,11 +6,11 @@
 # 2018-12-29 20:01:06
 # => ALL_ENTREZ_GENES_FASTSEMSIM/output/all_entrez_GeneOntology_biological_process_SimGIC_max_result_file.txt
 
-### USING PIPELINE CONSENSUS G2T FILE
+### USING PIPELINE TISSUE SPECIFIC G2T FILE
 
-# Rscript all_entrez_fastSemSim.R
+# Rscript all_entrez_fastSemSim_otherTADfile.R GSE105465_ENCFF777DUA_Caki2_vs_GSE105235_ENCFF235TGH_G401
 
-cat("> START all_entrez_fastSemSim.R\n")
+cat("> START all_entrez_fastSemSim_otherTADfile.R\n")
 
 startTime <- Sys.time()
 
@@ -24,7 +24,13 @@ library(data.table)
 library(dplyr)
 source("utils.R")
 
-outFold <- "ALL_ENTREZ_FASTSEMSIM"
+dataset="GSE105465_ENCFF777DUA_Caki2_vs_GSE105235_ENCFF235TGH_G401"
+
+args <- commandArgs(trailingOnly = TRUE)
+stopifnot(length(args) == 1)
+dataset <- args[1]
+
+outFold <- file.path("ALL_ENTREZ_FASTSEMSIM", dataset)
 dir.create(outFold, recursive=T)
 
 simgic_dt <- fread("ALL_ENTREZ_GENES_FASTSEMSIM/output/all_entrez_GeneOntology_biological_process_SimGIC_max_result_file.txt",
@@ -47,9 +53,13 @@ naomit_simgic_dt$obj_2 <- as.character(naomit_simgic_dt$obj_2)
 # TADpos_DT <- read.delim(TADpos_file, header=F, stringsAsFactors = FALSE, col.names = c("chromo", "region", "start", "end"))
 # TADpos_DT <- TADpos_DT[grep("_TAD", TADpos_DT$region),]
 
-gene2tadDT_file <- paste0(setDir, 
-                          "/mnt/ed4/marie/gene_data_final/consensus_TopDom_covThresh_r0.6_t80000_v0_w-1_final/genes2tad/all_genes_positions.txt") 
+# gene2tadDT_file <- paste0(setDir, 
+#                           "/mnt/ed4/marie/gene_data_final/consensus_TopDom_covThresh_r0.6_t80000_v0_w-1_final/genes2tad/all_genes_positions.txt") 
 
+# /mnt/etemp/marie/Dixon2018_integrative_data/gene_data_final/GSE105465_ENCFF777DUA_Caki2_vs_GSE105235_ENCFF235TGH_G401/genes2tad/all_genes_positions.txt
+gene2tadDT_file <- paste0(setDir, 
+                          "/mnt/etemp/marie/Dixon2018_integrative_data/gene_data_final/", dataset, "/genes2tad/all_genes_positions.txt") 
+stopifnot(file.exists(gene2tadDT_file))
 g2tDT <- read.delim(gene2tadDT_file, header=F, stringsAsFactors = FALSE, col.names=c("entrezID", "chromo", "start", "end", "region"))
 g2tDT$entrezID <- as.character(g2tDT$entrezID)
 g2tDT <- g2tDT[grep("_TAD", g2tDT$region),]
@@ -74,8 +84,6 @@ simgic_regions_DT$sameTAD <- as.numeric(simgic_regions_DT$region_obj_1 == simgic
 
 cat("simgic_regions_DT:\n")
 write.table(simgic_regions_DT[1:10,], file="", sep="\t", quote=F, row.names=F, col.names=T)
-
-
 
 cat("draw multidens\n")
 outFile <- file.path(outFold, "ss_density_sameTAD_diffTAD.png")
@@ -120,6 +128,63 @@ cat(paste0("written: ", outFile, "\n"))
 cat(paste0("***DONE\n", startTime,"\n", Sys.time(), "\n"))    
 
 
+dataDT <-	read.table(textConnection("
+dataset sameTAD nbrPairs meanSS FC
+Pipeline_consensus	0	104770672	0.04941	7.03
+Pipeline_consensus	1	71768	0.34720	7.03
+Astro	0	62095858	0.04920	5.25
+Astro	1	70967	0.25854	5.25
+A549_NCIH460	0	44997448	0.04997	5.05
+A549_NCIH460	1	65823	0.25251	5.05
+Caki2_G401	0	43766581	0.05088	4.42
+Caki2_G401	1	70985	0.22508	4.42
+DLD1	0	90003529	0.04975	5.49
+DLD1	1	78224	0.27315	5.49
+MCF7	0	56598882	0.04945	6.84
+MCF7	1	53808	0.33839	6.84
+Panc1	0	89772452	0.04981	4.8
+Panc1	1	94669	0.23894	4.8
+RPMI7951_SKMEL5	0	44893549	0.05035	4.55
+RPMI7951_SKMEL5	1	65354	0.22925	4.55
+                                    "),
+                     header=TRUE)
+
+dataDT$nbrPairs_log10 <- log10(dataDT$nbrPairs)
+
+plot(meanSS ~ nbrPairs, 
+     data = dataDT[dataDT$sameTAD == 0,],
+     pch=16,
+     cex=1.2,
+     main="mean SS vs. # gene pairs (diffTAD)",
+     xlab="# pairs", ylab="meanSS",
+     cex.axis=1.2,cex.lab=1.2)
+
+plot(meanSS ~ nbrPairs_log10, 
+     data = dataDT[dataDT$sameTAD == 0,],
+     pch=16,
+     cex=2,
+     main="mean SS vs. # gene pairs (diffTAD)",
+     xlab="# pairs [log10]", ylab="meanSS",
+     cex.axis=2,cex.lab=2,cex.main=2)
+
+
+
+plot(meanSS ~ nbrPairs, 
+     data = dataDT[dataDT$sameTAD == 1,],
+     pch=16,
+     cex=1.2,
+     main="mean SS vs. # gene pairs (sameTAD)",
+     xlab="# pairs", ylab="meanSS",
+     cex.axis=1.2,cex.lab=1.2)
+
+
+plot(meanSS ~ nbrPairs_log10, 
+     data = dataDT[dataDT$sameTAD == 1,],
+     pch=16,
+     cex=2,
+     main="mean SS vs. # gene pairs (sameTAD)",
+     xlab="# pairs [log10]", ylab="meanSS",
+     cex.axis=2,cex.lab=2,cex.main=2)
 
 
 
