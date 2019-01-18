@@ -15,7 +15,10 @@ cat("> START all_entrez_fastSemSim_otherTADfile_correctDist.R\n")
 startTime <- Sys.time()
 
 buildDT <- FALSE
+buildModel <- FALSE
+
 cat(paste0(" !!! ... buildDT = ", as.character(buildDT), "\n"))
+cat(paste0(" !!! ... buildModel = ", as.character(buildModel), "\n"))
 
 SSHFS <- FALSE
 
@@ -149,10 +152,15 @@ if(buildDT) {
   save(diffTAD_DT, file = outFile)
   cat(paste0("... written: ", outFile, "\n"))
 } else{
-  
+  cat(paste0("... load sameTAD_DT\t", Sys.time(), "\t"))
   sameTAD_DT <- eval(parse(text = load( file.path(outFold, "sameTAD_DT.Rdata"))))
+  cat(paste0(Sys.time(), "\n"))
+      
+  cat(paste0("... load diffTAD_DT\t", Sys.time(), "\t"))
   diffTAD_DT <- eval(parse(text = load(file.path(outFold, "diffTAD_DT.Rdata"))))
-  simgic_regions_DT = rbind(sameTAD_DT, diffTAD_DT)
+  cat(paste0(Sys.time(), "\n"))
+  
+  simgic_regions_DT <- rbind(sameTAD_DT, diffTAD_DT)
   
 }
 
@@ -218,8 +226,7 @@ my_xlab <- paste0("Distance between the 2 genes (bp)")
                 # 
                 # foo <- dev.off()
                 # cat(paste0("... written: ", outFile, "\n"))
-
-
+if(buildModel){
 sameTAD_loess <- loess(ss ~ dist, data = sameTAD_DT)
 outFile <- file.path(outFold, "sameTAD_loess.Rdata")
 save(sameTAD_loess, file = outFile)
@@ -230,14 +237,27 @@ outFile <- file.path(outFold, "diffTAD_loess.Rdata")
 save(diffTAD_loess, file = outFile)
 cat(paste0("... written: ", outFile, "\n"))
 
-# REDO THE MODELS WITH A SUBSET OF DATA
-stopifnot( nrow(sameTAD_DT) == nrow(diffTAD_DT) )
-sampIdx <- sample(x = 1:nrow(sameTAD_DT), size=nSamp_shortModel, replace = FALSE)
 
-sameTAD_DT_short <- sameTAD_DT[sampIdx,]
+} else {
+outFile <- file.path(outFold, "sameTAD_loess.Rdata")
+cat("...load sameTAD_loess\n")
+sameTAD_loess = eval(parse(text = load(outFile)))
+
+outFile <- file.path(outFold, "diffTAD_loess.Rdata")
+cat("...load diffTAD_loess\n")
+diffTAD_loess = eval(parse(text = load(outFile)))
+}
+
+# REDO THE MODELS WITH A SUBSET OF DATA
+#stopifnot( nrow(sameTAD_DT) == nrow(diffTAD_DT) )
+sampIdxSame <- sample(x = 1:nrow(sameTAD_DT), size=nSamp_shortModel, replace = FALSE)
+sampIdxDiff <- sample(x = 1:nrow(diffTAD_DT), size=nSamp_shortModel, replace = FALSE)
+
+
+sameTAD_DT_short <- sameTAD_DT[sampIdxSame,]
 sameTAD_loess_short <- loess(ss ~ dist, data = sameTAD_DT_short)
 
-diffTAD_DT_short <- diffTAD_DT[sampIdx,]
+diffTAD_DT_short <- diffTAD_DT[sampIdxDiff,]
 diffTAD_loess_short <- loess(ss ~ dist, data = diffTAD_DT_short)
 
 
@@ -283,12 +303,14 @@ outFile <- file.path(outFold, "smooth_vals_diffTAD_distVect.Rdata")
 save(smooth_vals_diffTAD_distVect, file = outFile)
 cat(paste0("... written: ", outFile, "\n"))
 
+# smooth_vals_sameTAD_short_distVect <- smooth_vals_sameTAD_short_distVect$fit  # because was computed with se=TRUE
 outFile <- file.path(outFold, "smooth_vals_sameTAD_short_distVect.Rdata")
-save(smooth_vals_sameTAD_distVect, file = outFile)
+save(smooth_vals_sameTAD_short_distVect, file = outFile)
 cat(paste0("... written: ", outFile, "\n"))
 
+# smooth_vals_diffTAD_short_distVect <- smooth_vals_diffTAD_short_distVect$fit
 outFile <- file.path(outFold, "smooth_vals_diffTAD_short_distVect.Rdata")
-save(smooth_vals_diffTAD_distVect, file = outFile)
+save(smooth_vals_diffTAD_short_distVect, file = outFile)
 cat(paste0("... written: ", outFile, "\n"))
 
 outFile <- file.path(outFold, "distVect.Rdata")
@@ -296,11 +318,14 @@ save(distVect, file = outFile)
 cat(paste0("... written: ", outFile, "\n"))
 
 ### compute and save AUC to compare the loess with data subset
+cat("auc1\n")
 auc_diffTAD_distVect <- auc(x = distVect, y = smooth_vals_diffTAD_distVect)
+cat("auc2\n")
 auc_sameTAD_distVect <- auc(x = distVect, y = smooth_vals_sameTAD_distVect)
-
-auc_diffTAD_short_distVect <- auc(x = distVect, y = smooth_vals_diffTAD_short_distVect)
-auc_sameTAD_short_distVect <- auc(x = distVect, y = smooth_vals_sameTAD_short_distVect)
+cat("auc3\n")
+auc_diffTAD_short_distVect <- auc(x = distVect, y = smooth_vals_diffTAD_short_distVect$fit)
+cat("auc4\n")
+auc_sameTAD_short_distVect <- auc(x = distVect, y = smooth_vals_sameTAD_short_distVect$fit)
 
 outFile <- file.path(outFold, "auc_diffTAD_distVect.Rdata")
 save(auc_diffTAD_distVect, file = outFile)
@@ -333,9 +358,9 @@ plot(NULL,
      main=paste0(dataset, ": SS ~ dist loess fit"))
 mtext(text = paste0("distance values seq from 0 to ", distLimit, " (# points = ", nbrLoessPoints, ")"), side = 3)
 
-lines(sort(sameTAD_DT$dist),smooth_vals_sameTAD_distVect$fit, col = sameTADcol)
+lines(sort(sameTAD_DT$dist),smooth_vals_sameTAD_distVect, col = sameTADcol)
 
-lines(sort(diffTAD_DT$dist),smooth_vals_diffTAD_distVect$fit, col = diffTADcol)
+lines(sort(diffTAD_DT$dist),smooth_vals_diffTAD_distVect, col = diffTADcol)
 # lines(diffTAD_DT$dist,smooth_vals_diffTAD_distVect$fit+2*smooth_vals_diffTAD_distVect$s, lty=2, col = diffTADcol) #rough & ready CI
 # lines(diffTAD_DT$dist,smooth_vals_diffTAD_distVect$fit-2*smooth_vals_diffTAD_distVect$s, lty=2, col = diffTADcol)
 
