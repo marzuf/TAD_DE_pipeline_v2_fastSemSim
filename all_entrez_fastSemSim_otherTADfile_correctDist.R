@@ -51,6 +51,10 @@ dataset <- args[1]
 outFold <- file.path("ALL_ENTREZ_FASTSEMSIM", dataset)
 dir.create(outFold, recursive=T)
 
+
+sameTADcol <- "darkorange1"
+diffTADcol <- "darkslateblue"
+
 if(buildDT) {
 
   distFile <- file.path(setDir, "mnt/etemp/marie/Dixon2018_integrative_data/CREATE_DIST_SORTNODUP", dataset, "all_dist_pairs.Rdata")
@@ -358,9 +362,9 @@ plot(NULL,
      main=paste0(dataset, ": SS ~ dist loess fit"))
 mtext(text = paste0("distance values seq from 0 to ", distLimit, " (# points = ", nbrLoessPoints, ")"), side = 3)
 
-lines(sort(sameTAD_DT$dist),smooth_vals_sameTAD_distVect, col = sameTADcol)
+lines(distVect,smooth_vals_sameTAD_distVect, col = sameTADcol)
 
-lines(sort(diffTAD_DT$dist),smooth_vals_diffTAD_distVect, col = diffTADcol)
+lines(distVect,smooth_vals_diffTAD_distVect, col = diffTADcol)
 # lines(diffTAD_DT$dist,smooth_vals_diffTAD_distVect$fit+2*smooth_vals_diffTAD_distVect$s, lty=2, col = diffTADcol) #rough & ready CI
 # lines(diffTAD_DT$dist,smooth_vals_diffTAD_distVect$fit-2*smooth_vals_diffTAD_distVect$s, lty=2, col = diffTADcol)
 
@@ -383,19 +387,20 @@ outFile <- file.path(outFold, paste0("sameTAD_diffTAD_subset_loessFit_withCI_vec
 do.call(plotType, list(outFile, height = myHeight, width = myWidth))
 plot(NULL,
      xlim = range(distVect), 
-     ylim = range(c(na.omit(smooth_vals_sameTAD_short_distVect), na.omit(smooth_vals_diffTAD_short_distVect))),
+     ylim = range(c(diffTAD_short_fit_CIlow,diffTAD_short_fit_CIhigh,
+                    sameTAD_short_fit_CIlow,sameTAD_short_fit_CIhigh ), na.rm=TRUE),
      xlab=my_xlab,
      ylab=my_ylab,
      main=mytit)
 mtext(text = paste0("distance values seq from 0 to ", distLimit, " (# points = ", nbrLoessPoints, ")"), side = 3)
 
 lines(distVect, sameTAD_short_fit, col = sameTADcol)
-lines(distVect, sameTAD_short_fit_CIlow, col = sameTADcol)
-lines(distVect, sameTAD_short_fit_CIhigh, col = sameTADcol)
+lines(distVect, sameTAD_short_fit_CIlow, col = sameTADcol, lty=2)
+lines(distVect, sameTAD_short_fit_CIhigh, col = sameTADcol,lty=2)
 
 lines(distVect, diffTAD_short_fit, col = sameTADcol)
-lines(distVect, diffTAD_short_fit_CIlow, col = sameTADcol)
-lines(distVect, diffTAD_short_fit_CIhigh, col = sameTADcol)
+lines(distVect, diffTAD_short_fit_CIlow, col = sameTADcol,lty=2)
+lines(distVect, diffTAD_short_fit_CIhigh, col = sameTADcol,lty=2)
 
 legend("topright", 
        legend=c(paste0("sameTAD\n(AUC=", round(auc_sameTAD_short_distVect, 2), ")"), paste0("diffTAD\n(AUC=", round(auc_diffTAD_short_distVect, 2))), 
@@ -405,6 +410,8 @@ legend("topright",
 
 foo <- dev.off()
 cat(paste0("... written: ", outFile, "\n"))
+
+cat(paste0("*** Done\n", startTime, "\n", Sys.time(), "\n"))
 
 stop("-- ok \n")
 

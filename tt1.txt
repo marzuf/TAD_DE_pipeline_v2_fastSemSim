@@ -1,0 +1,100 @@
+! Thu Dec  6 11:50:17 2018MZ edited: replace 1st and 2nd column with entrezID (uniprotID<->entrezID retrieved from /mnt/ed4/marie/software/fastsemsim-0.9.4/ebi_files/goa_human.gpi)
+entrezID	37501	DNAJC25-GNG10		GO:0003924	GO_REF:0000002	IEA	InterPro:IPR001770	F	Guanine nucleotide-binding protein subunit gamma	DNAJC25-GNG10|hCG_1994888	protein	taxon:9606	20181201	InterPro		
+
+entrezID	37501	DNAJC25-GNG10		GO:0005515	PMID:21873635	IBA	PANTHER:PTN002492804|UniProtKB:P50151|UniProtKB:P63218	F	Guanine nucleotide-binding protein subunit gamma	DNAJC25-GNG10|hCG_1994888	protein	taxon:9606	20180425	GO_Central		
+
+entrezID	37501	DNAJC25-GNG10		GO:0005834	PMID:21873635	IBA	FB:FBgn0004921|PANTHER:PTN001418483|RGD:1595475|RGD:621514|RGD:69268|UniProtKB:O14610|UniProtKB:P63212	C	Guanine nucleotide-binding protein subunit gamma	DNAJC25-GNG10|hCG_1994888	protein	taxon:9606	20180425	GO_Central		
+
+entrezID	37501	DNAJC25-GNG10		GO:0007186	GO_REF:0000002	IEA	InterPro:IPR001770|InterPro:IPR015898|InterPro:IPR036284	P	Guanine nucleotide-binding protein subunit gamma	DNAJC25-GNG10|hCG_1994888	protein	taxon:9606	20181201	InterPro		
+
+entrezID	18012	NUDT4B		GO:0003723	GO_REF:0000037	IEA	UniProtKB-KW:KW-0694	F	Diphosphoinositol polyphosphate phosphohydrolase NUDT4B	NUDT4B	protein	taxon:9606	20181201	UniProt		
+
+entrezID	18012	NUDT4B		GO:0005829	GO_REF:0000052	IDA		C	Diphosphoinositol polyphosphate phosphohydrolase NUDT4B	NUDT4B	protein	taxon:9606	20161204	HPA		
+
+entrezID	18012	NUDT4B		GO:0008486	GO_REF:0000003	IEA	EC:3.6.1.52	F	Diphosphoinositol polyphosphate phosphohydrolase NUDT4B	NUDT4B	protein	taxon:9606	20181201	UniProt		
+
+entrezID	18012	NUDT4B		GO:0046872	GO_REF:0000037	IEA	UniProtKB-KW:KW-0479	F	Diphosphoinositol polyphosphate phosphohydrolase NUDT4B	NUDT4B	protein	taxon:9606	20181201	UniProt		
+
+entrezID	18012	NUDT4B		GO:0052840	GO_REF:0000003	IEA	EC:3.6.1.52	F	Diphosphoinositol polyphosphate phosphohydrolase NUDT4B	NUDT4B	protein	taxon:9606	20181201	UniProt		
+
+entrezID	18012	NUDT4B		GO:0052842	GO_REF:0000003	IEA	EC:3.6.1.52	F	Diphosphoinositol polyphosphate phosphohydrolase NUDT4B	NUDT4B	protein	taxon:9606	20181201	UniProt		
+
+entrezID	5821	IGKV3-7		GO:0002377	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin kappa variable 3-7 (non-functional)	IGKV3-7	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5821	IGKV3-7		GO:0005615	PMID:21873635	IBA	PANTHER:PTN000587099|UniProtKB:P01619	C	Immunoglobulin kappa variable 3-7 (non-functional)	IGKV3-7	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5821	IGKV3-7		GO:0006955	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin kappa variable 3-7 (non-functional)	IGKV3-7	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5757	IGKV1D-42		GO:0002377	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin kappa variable 1D-42 (non-functional)	IGKV1D-42	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5757	IGKV1D-42		GO:0005615	PMID:21873635	IBA	PANTHER:PTN000587099|UniProtKB:P01619	C	Immunoglobulin kappa variable 1D-42 (non-functional)	IGKV1D-42	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5757	IGKV1D-42		GO:0006955	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin kappa variable 1D-42 (non-functional)	IGKV1D-42	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5921	IGLV4-69		GO:0002250	GO_REF:0000037	IEA	UniProtKB-KW:KW-1064	P	Immunoglobulin lambda variable 4-69	IGLV4-69	protein	taxon:9606	20181201	UniProt		
+
+entrezID	5921	IGLV4-69		GO:0002377	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin lambda variable 4-69	IGLV4-69	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5921	IGLV4-69		GO:0003823	GO_REF:0000037	IEA	UniProtKB-KW:KW-0394	F	Immunoglobulin lambda variable 4-69	IGLV4-69	protein	taxon:9606	20181201	UniProt		
+
+entrezID	5921	IGLV4-69		GO:0005615	PMID:21873635	IBA	PANTHER:PTN000587099|UniProtKB:P01619	C	Immunoglobulin lambda variable 4-69	IGLV4-69	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5921	IGLV4-69		GO:0005886	GO_REF:0000039	IEA	UniProtKB-SubCell:SL-0039	C	Immunoglobulin lambda variable 4-69	IGLV4-69	protein	taxon:9606	20181201	UniProt		
+
+entrezID	5921	IGLV4-69		GO:0006955	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin lambda variable 4-69	IGLV4-69	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5931	IGLV8-61		GO:0002250	GO_REF:0000037	IEA	UniProtKB-KW:KW-1064	P	Immunoglobulin lambda variable 8-61	IGLV8-61	protein	taxon:9606	20181201	UniProt		
+
+entrezID	5931	IGLV8-61		GO:0002377	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin lambda variable 8-61	IGLV8-61	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5931	IGLV8-61		GO:0003823	GO_REF:0000037	IEA	UniProtKB-KW:KW-0394	F	Immunoglobulin lambda variable 8-61	IGLV8-61	protein	taxon:9606	20181201	UniProt		
+
+entrezID	5931	IGLV8-61		GO:0005615	PMID:21873635	IBA	PANTHER:PTN000587099|UniProtKB:P01619	C	Immunoglobulin lambda variable 8-61	IGLV8-61	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5931	IGLV8-61		GO:0005886	GO_REF:0000039	IEA	UniProtKB-SubCell:SL-0039	C	Immunoglobulin lambda variable 8-61	IGLV8-61	protein	taxon:9606	20181201	UniProt		
+
+entrezID	5931	IGLV8-61		GO:0006955	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin lambda variable 8-61	IGLV8-61	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5920	IGLV4-60		GO:0002250	GO_REF:0000037	IEA	UniProtKB-KW:KW-1064	P	Immunoglobulin lambda variable 4-60	IGLV4-60	protein	taxon:9606	20181201	UniProt		
+
+entrezID	5920	IGLV4-60		GO:0002377	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin lambda variable 4-60	IGLV4-60	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5920	IGLV4-60		GO:0003823	GO_REF:0000037	IEA	UniProtKB-KW:KW-0394	F	Immunoglobulin lambda variable 4-60	IGLV4-60	protein	taxon:9606	20181201	UniProt		
+
+entrezID	5920	IGLV4-60		GO:0005615	PMID:21873635	IBA	PANTHER:PTN000587099|UniProtKB:P01619	C	Immunoglobulin lambda variable 4-60	IGLV4-60	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5920	IGLV4-60		GO:0005886	GO_REF:0000039	IEA	UniProtKB-SubCell:SL-0039	C	Immunoglobulin lambda variable 4-60	IGLV4-60	protein	taxon:9606	20181201	UniProt		
+
+entrezID	5920	IGLV4-60		GO:0006955	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin lambda variable 4-60	IGLV4-60	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5886	IGLV11-55		GO:0002377	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin lambda variable 11-55 (non-functional)	IGLV11-55	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5886	IGLV11-55		GO:0005615	PMID:21873635	IBA	PANTHER:PTN000587099|UniProtKB:P01619	C	Immunoglobulin lambda variable 11-55 (non-functional)	IGLV11-55	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5886	IGLV11-55		GO:0006955	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin lambda variable 11-55 (non-functional)	IGLV11-55	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5884	IGLV10-54		GO:0002250	GO_REF:0000037	IEA	UniProtKB-KW:KW-1064	P	Immunoglobulin lambda variable 10-54	IGLV10-54	protein	taxon:9606	20181201	UniProt		
+
+entrezID	5884	IGLV10-54		GO:0002377	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin lambda variable 10-54	IGLV10-54	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5884	IGLV10-54		GO:0003823	GO_REF:0000037	IEA	UniProtKB-KW:KW-0394	F	Immunoglobulin lambda variable 10-54	IGLV10-54	protein	taxon:9606	20181201	UniProt		
+
+entrezID	5884	IGLV10-54		GO:0005615	PMID:21873635	IBA	PANTHER:PTN000587099|UniProtKB:P01619	C	Immunoglobulin lambda variable 10-54	IGLV10-54	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5884	IGLV10-54		GO:0005886	GO_REF:0000039	IEA	UniProtKB-SubCell:SL-0039	C	Immunoglobulin lambda variable 10-54	IGLV10-54	protein	taxon:9606	20181201	UniProt		
+
+entrezID	5884	IGLV10-54		GO:0006955	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin lambda variable 10-54	IGLV10-54	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5881	IGLV1-50		GO:0002377	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin lambda variable 1-50 (non-functional)	IGLV1-50	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5881	IGLV1-50		GO:0005615	PMID:21873635	IBA	PANTHER:PTN000587099|UniProtKB:P01619	C	Immunoglobulin lambda variable 1-50 (non-functional)	IGLV1-50	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5881	IGLV1-50		GO:0006955	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin lambda variable 1-50 (non-functional)	IGLV1-50	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5925	IGLV5-48		GO:0002377	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin lambda variable 5-48 (non-functional)	IGLV5-48	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5925	IGLV5-48		GO:0005615	PMID:21873635	IBA	PANTHER:PTN000587099|UniProtKB:P01619	C	Immunoglobulin lambda variable 5-48 (non-functional)	IGLV5-48	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5925	IGLV5-48		GO:0006955	PMID:21873635	IBA	MGI:MGI:98936|PANTHER:PTN000587099	P	Immunoglobulin lambda variable 5-48 (non-functional)	IGLV5-48	protein	taxon:9606	20170228	GO_Central		
+
+entrezID	5930	IGLV7-46		GO:0002250	GO_REF:0000037	IEA	UniProtKB-KW:KW-1064	P	Immunoglobulin lambda variable 7-46	IGLV7-46	protein	taxon:9606	20181201	UniProt		

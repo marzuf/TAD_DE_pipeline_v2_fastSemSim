@@ -1,0 +1,51 @@
+# run fastSemSim to compute IC table for chr6_TAD58 only
+fastsemsim --ontology_type GeneOntology \
+--ac_species human \
+--ac_file //mnt/ed4/marie/software/fastsemsim-0.9.4/fastsemsim/mz_data/goa_human_entrezID.gaf \
+--query_ss_type obj \
+--tss SimGIC \
+--tmix max \
+--query_input file \
+--query_file FAST_SEM_SIM_vEntrez_withICtable/TCGAcoad_msi_mss/input/chr6_TAD58_query_file.txt \
+--task stats \
+--stats_IC \
+--output_file DATASETS_TADs_IC_TABLES/TCGAcoad_msi_mss/chr6_TAD58_GeneOntology_biological_process_SimGIC_max_IC_table.txt \
+-vv \
+--query_mode list \
+--root biological_process 
+
+
+
+# run fastSemSim on chr6_TAD58 using all datasets IC table
+fastsemsim --ontology_type GeneOntology \
+--ac_species human \
+--ac_file //mnt/ed4/marie/software/fastsemsim-0.9.4/fastsemsim/mz_data/goa_human_entrezID.gaf \
+--query_ss_type obj \
+--tss SimGIC \
+--tmix max \
+--query_input file \
+--query_file FAST_SEM_SIM_vEntrez_withICtable/TCGAcoad_msi_mss/input/chr6_TAD58_query_file.txt \
+--inject_IC ALL_GENES_IC_TABLE/output/all_datasets_GeneOntology_biological_process_SimGIC_max_IC_table.txt \
+--task SS \
+--output_file cmp_IC_table/TCGAcoad_msi_mss/output/chr6_TAD58_GeneOntology_biological_process_SimGIC_max_result_file_all_datasets_IC_table.txt \
+-vv \
+--query_mode list \
+--root biological_process 
+
+
+# run fastSemSim on chr6_TAD58 using dataset TAD specific IC table
+fastsemsim --ontology_type GeneOntology \
+--ac_species human \
+--ac_file //mnt/ed4/marie/software/fastsemsim-0.9.4/fastsemsim/mz_data/goa_human_entrezID.gaf \
+--query_ss_type obj \
+--tss SimGIC \
+--tmix max \
+--query_input file \
+--query_file FAST_SEM_SIM_vEntrez_withICtable/TCGAcoad_msi_mss/input/chr6_TAD58_query_file.txt \
+--inject_IC DATASETS_TADs_IC_TABLES/TCGAcoad_msi_mss/chr6_TAD58_GeneOntology_biological_process_SimGIC_max_IC_table.txt \
+--task SS \
+--output_file cmp_IC_table/TCGAcoad_msi_mss/output/chr6_TAD58_GeneOntology_biological_process_SimGIC_max_result_file_dataset_tad_specific_IC_table.txt \
+-vv \
+--query_mode list \
+--root biological_process 
+
